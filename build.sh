@@ -1,3 +1,4 @@
+#/bin/sh
 # Build limine-deploy.
 make -C limine
  
@@ -16,4 +17,4 @@ xorriso -as mkisofs -b limine-cd.bin \
         iso_root -o image.iso
  
 # Install Limine stage 1 and 2 for legacy BIOS boot.
-./limine/limine-deploy image.iso
+# ./limine/limine-deploy image.iso
