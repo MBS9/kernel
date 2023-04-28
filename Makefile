@@ -92,7 +92,8 @@ override NASMFLAGS += \
 override CFILES := $(shell find -L . -type f -name '*.c' | grep -v 'limine/')
 override ASFILES := $(shell find -L . -type f -name '*.S' | grep -v 'limine/')
 override NASMFILES := $(shell find -L . -type f -name '*.asm' | grep -v 'limine/')
-override OBJ := $(CFILES:.c=.o) $(ASFILES:.S=.o) $(NASMFILES:.asm=.o)
+override FONTFILES := $(shell find -L . -type f -name '*.psf' | grep -v 'limine/')
+override OBJ := $(CFILES:.c=.o) $(ASFILES:.S=.o) $(NASMFILES:.asm=.o) $(FONTFILES:.psf=.o)
 override HEADER_DEPS := $(CFILES:.c=.d) $(ASFILES:.S=.d)
  
 # Default target.
@@ -117,8 +118,19 @@ $(KERNEL): $(OBJ)
 # Compilation rules for *.asm (nasm) files.
 %.o: %.asm
 	nasm $(NASMFLAGS) $< -o $@
- 
+
+%.o: %.psf
+	objcopy -O elf64-x86-64 -B i386 -I binary $<  $@
+
 # Remove object files and the final executable.
 .PHONY: clean
 clean:
 	rm -rf $(KERNEL) $(OBJ) $(HEADER_DEPS)
+
+.PHONY: iso
+iso:
+	./build.sh
+
+.PHONY: run
+run:
+	./run.sh

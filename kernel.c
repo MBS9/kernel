@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <limine.h>
+#include "kernel.h"
  
 // The Limine requests can be placed anywhere, but it is important that
 // the compiler does not optimise them away, so, usually, they should
@@ -75,7 +76,19 @@ static void hcf(void) {
         asm ("hlt");
     }
 }
- 
+int pixelwidth;
+int pitch;
+int height;
+char *fb;
+
+int scanline;
+
+static void putpixel(unsigned char* screen, int x,int y, int color) {
+    unsigned where = x*pixelwidth + y*pitch;
+    screen[where] = color & 255;              // BLUE
+    screen[where + 1] = (color >> 8) & 255;   // GREEN
+    screen[where + 2] = (color >> 16) & 255;  // RED
+}
 // The following will be our kernel's entry point.
 // If renaming _start() to something else, make sure to change the
 // linker script accordingly.
@@ -89,11 +102,25 @@ void _start(void) {
     // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
  
+    pixelwidth = framebuffer->width;
+    pitch = framebuffer->pitch;
+    fb = framebuffer->address;
+    height = framebuffer->height;
+    scanline = framebuffer->width*3;
     // Note: we assume the framebuffer model is RGB with 32-bit pixels.
+    int y = 0;
+    while (1) {
+        if (get_input_keycode() == KEY_A) {
+            putchar("a", 2, y, 0xFFFFFF, 0x000000);
+            y=y+1;
+        }
+    }
+    /*
     for (size_t i = 0; i < 100; i++) {
         uint32_t *fb_ptr = framebuffer->address;
         fb_ptr[i * (framebuffer->pitch / 4) + i] = 0xffffff;
     }
+    */
  
     // We're done, just hang...
     hcf();
