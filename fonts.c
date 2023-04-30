@@ -109,21 +109,30 @@ void putchar(
     }
 }
 
-#define X_SIZE 1
-#define Y_SIZE 1
-
 extern unsigned int cursorY;
 extern unsigned int cursorX;
 
 void print(char* text, int len) {
     for (int i =0; i<len; i++){
         if (text[i] == ' '){
-            cursorX += X_SIZE;
+            cursorX += 1;
             continue;
         }
-        putchar(text[i], cursorX, cursorY, 0xFFFFFF, 0x000000);
-        cursorX += X_SIZE;
+        putCharAuto(text[i]);
     }
-    cursorY += Y_SIZE;
+    cursorY += 1;
     cursorX = 0;
+}
+
+void putCharAuto(char c) {
+    unsigned int maxCharX = pixelwidth/X_SIZE;
+    unsigned int maxCharY = height/Y_SIZE;
+    putchar((unsigned char)c, cursorX, cursorY, 0xFFFFFF, 0x000000);
+    if (++cursorX>maxCharX){
+        cursorX=0;
+        cursorY+=1;
+    }
+    if (cursorY>maxCharY) {
+        cursorY = 0;
+    }
 }

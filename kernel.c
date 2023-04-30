@@ -29,6 +29,8 @@ int cursorY = 0;
 
 int scanline;
 
+struct limine_framebuffer* framebuffer;
+
 // The following will be our kernel's entry point.
 // If renaming _start() to something else, make sure to change the
 // linker script accordingly.
@@ -40,7 +42,7 @@ void _start(void) {
     }
  
     // Fetch the first framebuffer.
-    struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
+    framebuffer = framebuffer_request.response->framebuffers[0];
     scanline = framebuffer->pitch;
     init_mem(framebuffer->address+scanline*framebuffer->height + 20);
     pixelwidth = framebuffer->width;
@@ -50,8 +52,18 @@ void _start(void) {
     psf_init();
     print("Welcome to My OS", 16);
     print("Hello", 5);
-    if (get_input_keycode() == KEY_A) {
-        print("a", 1);
+    while (1) {
+        if (get_input_keycode() == KEY_A) {
+            putCharAuto('a');
+        } else if (get_input_keycode() == KEY_BACKSPACE) {
+            if (cursorX != 0) {
+                cursorX--;
+            } else if (cursorX == 0 && cursorY != 0) {
+                cursorY --;
+                cursorX = framebuffer->width/X_SIZE;
+            }
+            putchar((unsigned short)'a', cursorX, cursorY, 0x000000, 0x000000);
+        }
     }
     hcf();
 }

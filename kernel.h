@@ -3,6 +3,9 @@
 #pragma once
 #define PSF1_FONT_MAGIC 0x0434
 
+#define X_SIZE 16
+#define Y_SIZE 32
+
 char get_input_keycode();
 
 typedef struct {
@@ -35,6 +38,8 @@ void putchar(
 void psf_init();
 
 void print(char* text, int len);
+
+void putCharAuto(char c);
 
 #define KEYBOARD_PORT 0x60
 
