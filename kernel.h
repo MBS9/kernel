@@ -3,7 +3,7 @@
 #pragma once
 #define PSF1_FONT_MAGIC 0x0434
 
-#define X_SIZE 16
+#define X_SIZE 18 //16
 #define Y_SIZE 32
 
 char get_input_keycode();
