@@ -22,12 +22,14 @@ static void hcf(void) {
 int pixelwidth;
 int pitch;
 int height;
-char *fb;
+uint32_t *fb;
 
 int cursorX = 0;
 int cursorY = 0;
 
 int scanline;
+
+extern PSF_font* font;
 
 struct limine_framebuffer* framebuffer;
 
@@ -60,7 +62,7 @@ void _start(void) {
                 cursorX--;
             } else if (cursorX == 0 && cursorY != 0) {
                 cursorY --;
-                cursorX = framebuffer->width/X_SIZE;
+                cursorX = framebuffer->width/font->width;
             }
             putchar((unsigned short)'a', cursorX, cursorY, 0x000000, 0x000000);
         }
