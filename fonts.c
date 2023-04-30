@@ -7,12 +7,21 @@ extern char _binary_font_psf_end;
 uint16_t *unicode;
 extern char* fb;
 extern int height;
+extern int pixelwidth;
+extern int pitch;
 /* the linear framebuffer */
 /* number of bytes in each line, it's possible it's not screen width * bytesperpixel! */
 extern int scanline;
 /* import our font that's in the object file we've created above */
 extern char _binary_font_start;
  
+static void putpixel(unsigned char* screen, int x,int y, int color) {
+    unsigned where = x*pixelwidth + y*pitch;
+    screen[where] = color & 255;              // BLUE
+    screen[where + 1] = (color >> 8) & 255;   // GREEN
+    screen[where + 2] = (color >> 16) & 255;  // RED
+}
+
 #define PIXEL uint32_t   /* pixel pointer */
 void psf_init()
 {
@@ -32,8 +41,8 @@ void psf_init()
       font->numglyph * font->bytesperglyph
     );
     /* allocate memory for translation table */
-    unicode = fb + scanline*height; //calloc(USHRT_MAX, 2);
-    while(s>_binary_font_psf_end) {
+    unicode = calloc(USHRT_MAX, 2);
+    while(s>(char*)_binary_font_psf_end) {
         uint16_t uc = (uint16_t)((unsigned char *)s[0]);
         if(uc == 0xFF) {
             glyph++;

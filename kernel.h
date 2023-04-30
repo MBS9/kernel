@@ -1,4 +1,5 @@
 #include <inttypes.h>
+#include "lib/lib.h"
 #pragma once
 #define PSF1_FONT_MAGIC 0x0434
 
@@ -31,8 +32,9 @@ void putchar(
     /* foreground and background colors, say 0xFFFFFF and 0x000000 */
     uint32_t fg, uint32_t bg);
 
-#define KEYBOARD_PORT 0x60
+void psf_init();
 
+#define KEYBOARD_PORT 0x60
 
 #define KEY_A 0x1E
 #define KEY_B 0x30
