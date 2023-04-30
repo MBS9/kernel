@@ -14,20 +14,13 @@ extern int pitch;
 extern int scanline;
 /* import our font that's in the object file we've created above */
 extern char _binary_font_start;
- 
-static void putpixel(unsigned char* screen, int x,int y, int color) {
-    unsigned where = x*pixelwidth + y*pitch;
-    screen[where] = color & 255;              // BLUE
-    screen[where + 1] = (color >> 8) & 255;   // GREEN
-    screen[where + 2] = (color >> 16) & 255;  // RED
-}
 
 #define PIXEL uint32_t   /* pixel pointer */
 void psf_init()
 {
     uint16_t glyph = 0;
     /* cast the address to PSF header struct */
-    PSF_font *font = (PSF_font*)&_binary_font_psf_start;
+    PSF_font* font = (PSF_font*)&_binary_font_psf_start;
     /* is there a unicode table? */
     if (font->flags) {
         unicode = '\0';
@@ -35,15 +28,15 @@ void psf_init()
     }
  
     /* get the offset of the table */
-    char *s = (char *)(
+    unsigned char *s = (
     (unsigned char*)&_binary_font_psf_start +
       font->headersize +
       font->numglyph * font->bytesperglyph
     );
     /* allocate memory for translation table */
     unicode = calloc(USHRT_MAX, 2);
-    while(s>(char*)_binary_font_psf_end) {
-        uint16_t uc = (uint16_t)((unsigned char *)s[0]);
+    while(s>(unsigned char*)_binary_font_psf_end) {
+        uint16_t uc = (uint16_t)(s[0]);
         if(uc == 0xFF) {
             glyph++;
             s++;
@@ -69,12 +62,12 @@ void psf_init()
         s++;
     }
 }
- 
+
 void putchar(
     /* note that this is int, not char as it's a unicode character */
     unsigned short int c,
     /* cursor position on screen, in characters not in pixels */
-    int cx, int cy,
+    unsigned int cx, unsigned int cy,
     /* foreground and background colors, say 0xFFFFFF and 0x000000 */
     uint32_t fg, uint32_t bg)
 {
@@ -114,4 +107,23 @@ void putchar(
         glyph += bytesperline;
         offs  += scanline;
     }
+}
+
+#define X_SIZE 1
+#define Y_SIZE 1
+
+extern unsigned int cursorY;
+extern unsigned int cursorX;
+
+void print(char* text, int len) {
+    for (int i =0; i<len; i++){
+        if (text[i] == ' '){
+            cursorX += X_SIZE;
+            continue;
+        }
+        putchar(text[i], cursorX, cursorY, 0xFFFFFF, 0x000000);
+        cursorX += X_SIZE;
+    }
+    cursorY += Y_SIZE;
+    cursorX = 0;
 }

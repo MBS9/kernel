@@ -24,6 +24,9 @@ int pitch;
 int height;
 char *fb;
 
+int cursorX = 0;
+int cursorY = 0;
+
 int scanline;
 
 // The following will be our kernel's entry point.
@@ -39,27 +42,16 @@ void _start(void) {
     // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
     scanline = framebuffer->pitch;
-    init_mem(framebuffer->address+scanline*framebuffer->height);
+    init_mem(framebuffer->address+scanline*framebuffer->height + 20);
     pixelwidth = framebuffer->width;
     pitch = framebuffer->pitch;
     fb = framebuffer->address;
     height = framebuffer->height;
     psf_init();
-    // Note: we assume the framebuffer model is RGB with 32-bit pixels.
-    int x = 0;
-    while (1) {
-        if (get_input_keycode() == KEY_A) {
-            putchar((int)'a', x, 1, 0xFFFFFF, 0x000000);
-            x=x+1;
-        }
+    print("Welcome to My OS", 16);
+    print("Hello", 5);
+    if (get_input_keycode() == KEY_A) {
+        print("a", 1);
     }
-    /*
-    for (size_t i = 0; i < 100; i++) {
-        uint32_t *fb_ptr = framebuffer->address;
-        fb_ptr[i * (framebuffer->pitch / 4) + i] = 0xffffff;
-    }
-    */
- 
-    // We're done, just hang...
     hcf();
 }
