@@ -93,6 +93,9 @@ void _start(void) {
         if (!keep && new) {
             putchar('.', ox, oy, 0xFFFFFF, 0xFFFFFF);
         }
+        if (keep && new) {
+            putchar('x', ox, oy, 0x0000FF, 0xFFFF00);
+        }
         if (new) {
             putchar('X', cursorX, cursorY, 0x0000FF, 0xFFFF00);
             new = 0;
