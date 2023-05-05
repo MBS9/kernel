@@ -33,7 +33,7 @@ char get_input_keycode()
   char ch = 0;
   while((ch = inb(KEYBOARD_PORT)) != 0){
     if(ch > 0) {
-      sleep(0x6FFFFFF);
+      sleep(0x3FFFFFF);
       return ch;
     }
   }

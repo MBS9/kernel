@@ -36,7 +36,7 @@ void psf_init();
 
 void print(char* text, int len);
 
-void putCharAuto(char c);
+void putCharAuto(unsigned short c, uint32_t fg, uint32_t bg);
 
 #define KEYBOARD_PORT 0x60
 

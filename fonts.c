@@ -59,7 +59,6 @@ void psf_init()
         s++;
     }
 }
-
 void putchar(
     /* note that this is int, not char as it's a unicode character */
     unsigned short int c,
@@ -68,10 +67,12 @@ void putchar(
     /* foreground and background colors, say 0xFFFFFF and 0x000000 */
     uint32_t fg, uint32_t bg)
 {
+    /* cast the address to PSF header struct */
+    PSF_font *font = (PSF_font*)&_binary_font_psf_start;
     /* we need to know how many bytes encode one row */
     int bytesperline=(font->width+7)/8;
     /* unicode translation */
-    if(unicode != '\0') {
+    if(unicode != NULL) {
         c = unicode[c];
     }
     /* get the glyph for the character. If there's no
@@ -86,12 +87,12 @@ void putchar(
         (cy * font->height * pitch) +
         (cx * (font->width + 1) * sizeof(PIXEL));
     /* finally display pixels according to the bitmap */
-    int x,y, line;
+    int x,y, line,mask;
     for(y=0; y<font->height; y++){
         line = offs;
         for(x=0; x<font->width; x++){
             *((uint32_t*) (fb + line)) = glyph[x/8] & (0x80 >> (x & 7)) ? fg : bg;
-            line +=4;
+            line += sizeof(PIXEL);
         }
         glyph += bytesperline;
         offs +=pitch;
@@ -102,26 +103,28 @@ extern int cursorY;
 extern int cursorX;
 
 void print(char* text, int len) {
-    for (int i =0; i<len; i++){
+    for (int i = 0; i<len; i++){
         if (text[i] == ' '){
             cursorX += 1;
             continue;
         }
-        putCharAuto(text[i]);
+        putCharAuto(text[i], 0xFFFFFF, 0x000000);
     }
     cursorY += 1;
     cursorX = 0;
 }
 
-void putCharAuto(char c) {
-    int maxCharX = pixelwidth/font->width;
-    int maxCharY = height/font->width;
-    putchar((unsigned short)c, cursorX, cursorY, 0xFFFFFF, 0x000000);
-    if (++cursorX>maxCharX){
+void putCharAuto(unsigned short c, uint32_t fg, uint32_t bg) {
+    int maxCharX = 12;
+    int maxCharY = height/font->width-5;
+    //putchar(c, cursorX, cursorY, 0x00FF00, 0xFF00FF);
+    putchar(c, cursorX, cursorY, fg, bg);
+    cursorX = cursorX+1;
+    if (cursorX>=maxCharX){
         cursorX=0;
         cursorY+=1;
     }
-    if (cursorY>maxCharY) {
+    if (cursorY>=maxCharY) {
         cursorY = 0;
     }
 }

@@ -49,8 +49,54 @@ void _start(void) {
     height = framebuffer->height;
     init_mem(framebuffer->address+pitch*framebuffer->height + 20);
     psf_init();
-    print("Welcome to My OS", 16);
     print("Hello", 5);
+    print("Hit enter to start!", 19);
+    while (get_input_keycode() != KEY_ENTER){
+        continue;
+    }
+    print("Wait...", 7);
+    memset(fb, '\0', pitch*framebuffer->height);
+    for (cursorY = 0; cursorY<4; cursorY++) {
+        cursorX = 0;
+        for (int i = 0; i <8; i++) {
+            putCharAuto('.', 0xFFFFFF, 0xFFFFFF);
+        }
+    }
+    cursorX = 0;
+    cursorY = 0;
+    int ox, oy;
+    int keep = 1;
+    int new = 0;
+    while (1)
+    {
+        ox = cursorX;
+        oy = cursorY;
+        if (get_input_keycode() == KEY_DOWN && cursorY < 3){
+            cursorY = cursorY+1;
+            new = 1;
+        } else if (get_input_keycode() == KEY_UP && cursorY > 0) {
+            cursorY = cursorY -1;
+            new = 1;
+        } else if (get_input_keycode() == KEY_LEFT && cursorX >0) {
+            cursorX -=1;
+            new = 1;
+        } else if (get_input_keycode() == KEY_RIGHT && cursorX < 7) {
+            cursorX += 1;
+            new = 1;
+        } else if (get_input_keycode() == KEY_SPACE) {
+            keep = 1;
+        }
+        if (!keep && new) {
+            putchar('.', ox, oy, 0xFFFFFF, 0xFFFFFF);
+        }
+        if (new) {
+            putchar('X', cursorX, cursorY, 0x0000FF, 0xFFFF00);
+            new = 0;
+            keep = 0;
+        }
+    }
+    
+    /*
     while (1) {
         if (get_input_keycode() == KEY_A) {
             putCharAuto('a');
@@ -64,5 +110,6 @@ void _start(void) {
             putchar((unsigned short)'a', cursorX, cursorY, 0x000000, 0x000000);
         }
     }
+    */
     hcf();
 }
