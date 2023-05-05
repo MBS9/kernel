@@ -49,7 +49,8 @@ void _start(void) {
     height = framebuffer->height;
     init_mem(framebuffer->address+pitch*framebuffer->height + 20);
     psf_init();
-    print("Hello", 5);
+    print("Hey There!", 10);
+    print("Welcome!", 8);
     print("Hit enter to start!", 19);
     while (get_input_keycode() != KEY_ENTER){
         continue;
