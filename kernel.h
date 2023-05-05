@@ -28,7 +28,7 @@ void putchar(
     /* note that this is int, not char as it's a unicode character */
     unsigned short int c,
     /* cursor position on screen, in characters not in pixels */
-    unsigned int cx, unsigned int cy,
+    int cx, int cy,
     /* foreground and background colors, say 0xFFFFFF and 0x000000 */
     uint32_t fg, uint32_t bg);
 

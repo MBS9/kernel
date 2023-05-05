@@ -9,9 +9,6 @@ extern uint32_t* fb;
 extern int height;
 extern int pixelwidth;
 extern int pitch;
-/* the linear framebuffer */
-/* number of bytes in each line, it's possible it's not screen width * bytesperpixel! */
-extern int scanline;
 /* import our font that's in the object file we've created above */
 extern char _binary_font_start;
 PSF_font* font;
@@ -67,7 +64,7 @@ void putchar(
     /* note that this is int, not char as it's a unicode character */
     unsigned short int c,
     /* cursor position on screen, in characters not in pixels */
-    unsigned int cx, unsigned int cy,
+    int cx, int cy,
     /* foreground and background colors, say 0xFFFFFF and 0x000000 */
     uint32_t fg, uint32_t bg)
 {
@@ -86,10 +83,10 @@ void putchar(
     /* calculate the upper left corner on screen where we want to display.
        we only do this once, and adjust the offset later. This is faster. */
     int offs =
-        (cy * font->height * scanline) +
+        (cy * font->height * pitch) +
         (cx * (font->width + 1) * sizeof(PIXEL));
     /* finally display pixels according to the bitmap */
-    unsigned int x,y, line, mask;
+    int x,y, line;
     for(y=0; y<font->height; y++){
         line = offs;
         for(x=0; x<font->width; x++){
@@ -101,8 +98,8 @@ void putchar(
     }
 }
 
-extern unsigned int cursorY;
-extern unsigned int cursorX;
+extern int cursorY;
+extern int cursorX;
 
 void print(char* text, int len) {
     for (int i =0; i<len; i++){
@@ -117,9 +114,9 @@ void print(char* text, int len) {
 }
 
 void putCharAuto(char c) {
-    unsigned int maxCharX = pixelwidth/font->width;
-    unsigned int maxCharY = height/font->width;
-    putchar((unsigned char)c, cursorX, cursorY, 0xFFFFFF, 0x000000);
+    int maxCharX = pixelwidth/font->width;
+    int maxCharY = height/font->width;
+    putchar((unsigned short)c, cursorX, cursorY, 0xFFFFFF, 0x000000);
     if (++cursorX>maxCharX){
         cursorX=0;
         cursorY+=1;

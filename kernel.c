@@ -27,8 +27,6 @@ uint32_t *fb;
 int cursorX = 0;
 int cursorY = 0;
 
-int scanline;
-
 extern PSF_font* font;
 
 struct limine_framebuffer* framebuffer;
@@ -45,12 +43,11 @@ void _start(void) {
  
     // Fetch the first framebuffer.
     framebuffer = framebuffer_request.response->framebuffers[0];
-    scanline = framebuffer->pitch;
-    init_mem(framebuffer->address+scanline*framebuffer->height + 20);
     pixelwidth = framebuffer->width;
     pitch = framebuffer->pitch;
     fb = framebuffer->address;
     height = framebuffer->height;
+    init_mem(framebuffer->address+pitch*framebuffer->height + 20);
     psf_init();
     print("Welcome to My OS", 16);
     print("Hello", 5);
