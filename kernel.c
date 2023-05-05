@@ -62,7 +62,10 @@ void _start(void) {
         for (int i = 0; i <8; i++) {
             putCharAuto('.', 0xFFFFFF, 0xFFFFFF);
         }
-    }
+    }    
+    cursorX = 0;
+    cursorY = 4;
+    print("Enjoy!", 6);
     cursorX = 0;
     cursorY = 0;
     int ox, oy;
