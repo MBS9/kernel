@@ -11,6 +11,12 @@ static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,
     .revision = 0
 };
+
+static volatile struct limine_memmap_request memmap_request = {
+    .id = LIMINE_MEMMAP_REQUEST,
+    .revision = 0
+};
+
  
 // Halt and catch fire function.
 static void hcf(void) {
@@ -47,10 +53,23 @@ void _start(void) {
     pitch = framebuffer->pitch;
     fb = framebuffer->address;
     height = framebuffer->height;
-    init_mem(framebuffer->address+pitch*framebuffer->height + 20);
+    uint64_t largestLength = 0;
+    uint64_t largestBase;
+    for (int i = 0; i < memmap_request.response->entry_count; i++) {
+        if (memmap_request.response->entries[i]->type == LIMINE_MEMMAP_USABLE && memmap_request.response->entries[i]->length > largestLength) {
+            largestBase = memmap_request.response->entries[i]->base;
+            largestLength = memmap_request.response->entries[i]->length;
+        }
+    }
+    init_mem(largestBase);
     psf_init();
-    print("Hey There!", 10);
     print("Welcome!", 8);
+    /*
+    print("Heap at: ", 10);
+    char heap[8];
+    itoa(largestLength, &heap, sizeof(heap));
+    print(heap, 10);
+    */
     print("Hit enter to start!", 19);
     while (get_input_keycode() != KEY_ENTER){
         continue;

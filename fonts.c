@@ -87,7 +87,7 @@ void putchar(
         (cy * font->height * pitch) +
         (cx * (font->width + 1) * sizeof(PIXEL));
     /* finally display pixels according to the bitmap */
-    int x,y, line,mask;
+    int x,y, line;
     for(y=0; y<font->height; y++){
         line = offs;
         for(x=0; x<font->width; x++){

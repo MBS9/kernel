@@ -31,11 +31,11 @@ void outb(uint16_t port, uint8_t data)
 char get_input_keycode()
 {
   char ch = 0;
-  while((ch = inb(KEYBOARD_PORT)) != 0){
-    if(ch > 0) {
-      sleep(0x6FFFFFF);
-      return ch;
-    }
+  ch = inb(KEYBOARD_PORT);
+  if(ch == KEY_DOWN || ch == KEY_UP) {
+    sleep(0x6FFFFFF);
+  } else if (ch > 0) {
+    sleep(0x3FFFFFF);
   }
   return ch;
 }
