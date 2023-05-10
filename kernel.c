@@ -69,19 +69,11 @@ void _start(void) {
     psf_init();
     uint64_t *gdt = calloc(3, sizeof(uint64_t));
     gdt[0] = create_descriptor(0, 0, 0);
-    gdt[2] = create_descriptor(largestBase, largestLength, (GDT_DATA_PL0));
-    char temp[3];
-    for (int i = 0; i < memmap_request.response->entry_count; i++) {
-        struct limine_memmap_entry *entry = memmap_request.response->entries[i];
-        if (entry->type == LIMINE_MEMMAP_KERNEL_AND_MODULES) {
-            print("Kernel Module", 13);
-            sleep(0x3FFFFFF);
-            gdt[1] = create_descriptor(entry->base, entry->length, (GDT_CODE_PL0));
-        }
-    }
+    gdt[1] = create_descriptor(0, 0xFFFFFF, (GDT_CODE_PL0));
+    gdt[1] = create_descriptor(0, 0xFFFFFF, (GDT_DATA_PL0));
     print("Setting GDT", 11);
     sleep(0x3FFFFFF);
-    setGdt(gdt + 3*sizeof(uint64_t), (uint64_t)gdt);
+    setGdt(3*sizeof(uint64_t)-1, (uint64_t)gdt);
     print("Reloading Segments", 18);
     sleep(0x3FFFFFF);
     reloadSegments();
