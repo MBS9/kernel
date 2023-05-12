@@ -3,10 +3,11 @@
 
 void wait_for_io(uint32_t timer_count)
 {
+  register int timer = timer_count;
   while(1){
     asm volatile("nop");
-    timer_count--;
-    if(timer_count <= 0)
+    timer--;
+    if(timer <= 0)
       break;
     }
 }

@@ -17,12 +17,14 @@ static volatile struct limine_memmap_request memmap_request = {
     .revision = 0
 };
 
-extern setGdt(uint64_t limit, uint64_t base);
+extern void setGdt(uint64_t limit, uint64_t base);
 
-extern reloadSegments();
+extern void reloadSegments();
 
+volatile uint64_t gdt[3];
+volatile gdtrType gdtr;
 // Halt and catch fire function.
-static void hcf(void) {
+static void hcf() {
     asm ("cli");
     for (;;) {
         asm ("hlt");
@@ -58,22 +60,23 @@ void _start(void) {
     height = framebuffer->height;
     uint64_t largestLength = 0;
     uint64_t largestBase;
-    for (int i = 0; i < memmap_request.response->entry_count; i++) {
+    for (uint64_t i = 0; i < memmap_request.response->entry_count; i++) {
         struct limine_memmap_entry *entry = memmap_request.response->entries[i];
         if (entry->type == LIMINE_MEMMAP_USABLE && memmap_request.response->entries[i]->length > largestLength) {
             largestBase = memmap_request.response->entries[i]->base;
             largestLength = memmap_request.response->entries[i]->length;
         }
     }
-    init_mem(largestBase);
+    init_mem((void *)largestBase);
     psf_init();
-    uint64_t *gdt = calloc(3, sizeof(uint64_t));
     gdt[0] = create_descriptor(0, 0, 0);
-    gdt[1] = create_descriptor(0, 0xFFFFFF, (GDT_CODE_PL0));
-    gdt[1] = create_descriptor(0, 0xFFFFFF, (GDT_DATA_PL0));
+    gdt[1] = create_descriptor(0, 0xFFFFFFFFFFFF, (GDT_CODE_PL0));
+    gdt[1] = create_descriptor(0, 0xFFFFFFFFFFFF, (GDT_DATA_PL0));
     print("Setting GDT", 11);
     sleep(0x3FFFFFF);
-    setGdt(3*sizeof(uint64_t)-1, (uint64_t)gdt);
+    gdtr.limit = 3*sizeof(uint64_t)-1;
+    gdtr.ptr = &gdt;
+    asm volatile ("lgdt %1" : "=a"(&gdtr));
     print("Reloading Segments", 18);
     sleep(0x3FFFFFF);
     reloadSegments();
