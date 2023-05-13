@@ -24,11 +24,6 @@ typedef struct {
     uint32_t width;         /* width in pixels */
 } PSF_font;
 
-typedef struct {
-    uint16_t limit;
-    uint64_t* ptr;
-} gdtrType;
-
 void putchar(
     /* note that this is int, not char as it's a unicode character */
     unsigned short int c,
@@ -45,7 +40,7 @@ void putCharAuto(unsigned short c, uint32_t fg, uint32_t bg);
 void sleep(uint32_t timer_count);
 #define KEYBOARD_PORT 0x60
 
-uint64_t create_descriptor(uint64_t base, uint64_t limit, uint16_t flag);
+uint64_t create_descriptor(uint32_t base, uint32_t limit, uint16_t flag);
 
 // Each define here is for a specific flag in the descriptor.
 // Refer to the intel documentation for a description of what each one does.
