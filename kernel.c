@@ -17,9 +17,9 @@ static volatile struct limine_memmap_request memmap_request = {
     .revision = 0
 };
 
-extern setGdt(uint64_t limit, uint64_t base);
+extern void setGdt(uint64_t limit, uint64_t base);
 
-extern reloadSegments();
+extern void reloadSegments();
 
 // Halt and catch fire function.
 static void hcf(void) {
@@ -32,6 +32,8 @@ int pixelwidth;
 int pitch;
 int height;
 uint32_t *fb;
+
+uint64_t gdt[3];
 
 int cursorX = 0;
 int cursorY = 0;
@@ -57,33 +59,32 @@ void _start(void) {
     fb = framebuffer->address;
     height = framebuffer->height;
     uint64_t largestLength = 0;
-    uint64_t largestBase;
-    for (int i = 0; i < memmap_request.response->entry_count; i++) {
+    uint64_t largestBase = 0;
+    for (uint64_t i = 0; i < memmap_request.response->entry_count; i++) {
         struct limine_memmap_entry *entry = memmap_request.response->entries[i];
         if (entry->type == LIMINE_MEMMAP_USABLE && memmap_request.response->entries[i]->length > largestLength) {
             largestBase = memmap_request.response->entries[i]->base;
             largestLength = memmap_request.response->entries[i]->length;
         }
     }
-    init_mem(largestBase);
+    if (largestBase == 0) {
+        hcf();
+        return;
+    }
+    init_mem((void*)largestBase);
     psf_init();
-    uint64_t *gdt = calloc(3, sizeof(uint64_t));
     gdt[0] = create_descriptor(0, 0, 0);
-    gdt[1] = create_descriptor(0, 0xFFFFFF, (GDT_CODE_PL0));
-    gdt[1] = create_descriptor(0, 0xFFFFFF, (GDT_DATA_PL0));
+    gdt[1] = create_descriptor(0, 0x000FFFFF, (GDT_CODE_PL0));
+    gdt[1] = create_descriptor(0, 0x000FFFFF, (GDT_DATA_PL0));
+    /*
     print("Setting GDT", 11);
     sleep(0x3FFFFFF);
-    setGdt(3*sizeof(uint64_t)-1, (uint64_t)gdt);
+    setGdt(3*sizeof(uint64_t)-1, (uint64_t)&gdt);
     print("Reloading Segments", 18);
     sleep(0x3FFFFFF);
     reloadSegments();
     print("Welcome!", 8);
     sleep(0x3FFFFFF);
-    /*
-    print("Heap at: ", 10);
-    char heap[8];
-    itoa(largestLength, &heap, sizeof(heap));
-    print(heap, 10);
     */
     print("Hit enter to start!", 19);
     while (get_input_keycode() != KEY_ENTER){
