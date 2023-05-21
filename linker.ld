@@ -23,21 +23,27 @@ SECTIONS
     . = 0xffffffff80000000;
  
     .text : {
+        _stext = .;
         *(.text .text.*)
+        _etext = .;
     } :text
  
     /* Move to the next memory page for .rodata */
     . += CONSTANT(MAXPAGESIZE);
  
     .rodata : {
+        _srodata = .;
         *(.rodata .rodata.*)
+        _erodata = .;
     } :rodata
  
     /* Move to the next memory page for .data */
     . += CONSTANT(MAXPAGESIZE);
  
     .data : {
+        _sdata = .;
         *(.data .data.*)
+        _edata = .;
     } :data
  
     /* NOTE: .bss needs to be the last thing mapped to :data, otherwise lots of */

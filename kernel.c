@@ -39,6 +39,12 @@ int cursorX = 0;
 int cursorY = 0;
 
 extern PSF_font* font;
+extern char _stext;
+extern char _etext;
+extern char _srodata;
+extern char _erodata;
+extern char _sdata;
+extern char _edata;
 
 struct limine_framebuffer* framebuffer;
 
@@ -74,9 +80,11 @@ void _start(void) {
     init_mem((void*)largestBase);
     psf_init();
     gdt[0] = create_descriptor(0, 0, 0);
-    gdt[1] = create_descriptor(0, 0x000FFFFF, (GDT_CODE_PL0));
-    gdt[1] = create_descriptor(0, 0x000FFFFF, (GDT_DATA_PL0));
-    /*
+    gdt[1] = create_descriptor(0, &_edata, (GDT_CODE_PL0));
+    gdt[1] = create_descriptor(0, &_edata, (GDT_DATA_PL0));
+    char temp[7];
+    itoa(&_edata, &temp, 10);
+    print(&temp, 7);
     print("Setting GDT", 11);
     sleep(0x3FFFFFF);
     setGdt(3*sizeof(uint64_t)-1, (uint64_t)&gdt);
@@ -85,7 +93,6 @@ void _start(void) {
     reloadSegments();
     print("Welcome!", 8);
     sleep(0x3FFFFFF);
-    */
     print("Hit enter to start!", 19);
     while (get_input_keycode() != KEY_ENTER){
         continue;
