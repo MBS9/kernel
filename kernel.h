@@ -5,8 +5,8 @@
 
 char get_input_keycode();
 
-void outb(uint16_t port, uint8_t data);
-uint8_t inb(uint16_t port);
+void outb(uint16_t portid, uint8_t value);
+uint8_t inb(uint16_t portid);
 
 void checkAllBuses(void);
 

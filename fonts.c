@@ -115,7 +115,7 @@ void print(char* text, int len) {
 }
 
 void putCharAuto(unsigned short c, uint32_t fg, uint32_t bg) {
-    int maxCharX = 24;
+    int maxCharX = 27;
     int maxCharY = height/font->width-5;
     //putchar(c, cursorX, cursorY, 0x00FF00, 0xFF00FF);
     putchar(c, cursorX, cursorY, fg, bg);
