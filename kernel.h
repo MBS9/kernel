@@ -5,6 +5,11 @@
 
 char get_input_keycode();
 
+void outb(uint16_t port, uint8_t data);
+uint8_t inb(uint16_t port);
+
+void checkAllBuses(void);
+
 typedef struct {
     uint16_t magic; // Magic bytes for idnetiifcation.
     uint8_t fontMode; // PSF font mode
