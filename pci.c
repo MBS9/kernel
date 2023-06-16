@@ -1,5 +1,6 @@
 #include "kernel.h"
 #include "pci.h"
+#include "net/net.h"
 
 extern int cursorX;
 extern int cursorY;
@@ -84,8 +85,7 @@ void checkAllBuses(void) {
                 subClass = subClass & PCI_SELECT_LOWER_BYTE;
                 if (class == 0x2 && subClass == 0x0) {
                     print("Found ethernet controller", 25);
-                    uint32_t CSR_IO_MAPPED_BASE_ADDR = pciConfigReadWord(bus, device, function, INTEL_ETHER_CSR_IO_BASE_REG, PCI_SELECT_REGISTER);
-
+                    nicAttach(bus, device, function);
                 }
             }
         }
