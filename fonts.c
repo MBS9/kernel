@@ -13,6 +13,9 @@ extern int pitch;
 extern char _binary_font_start;
 PSF_font* font;
 #define PIXEL uint32_t   /* pixel pointer */
+
+// The next two functions were copied as-is from OSDev
+// I do not understand them
 void psf_init()
 {
     uint16_t glyph = 0;

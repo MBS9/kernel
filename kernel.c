@@ -2,7 +2,8 @@
 #include <stddef.h>
 #include <limine.h>
 #include "kernel.h"
- 
+#include "net/net.h"
+
 // The Limine requests can be placed anywhere, but it is important that
 // the compiler does not optimise them away, so, usually, they should
 // be made volatile or equivalent.
@@ -73,5 +74,12 @@ void _start(void) {
     cursorX = 0;
     cursorY = 0;
     checkAllBuses();
+    char* test[RING_ELEMENT_NO];
+    char temp[RING_ELEMENT_CONTENT_SIZE];
+    memset(&temp, (int)'A', RING_ELEMENT_CONTENT_SIZE);
+    for (int i =0; i<RING_ELEMENT_NO; i++) {
+        test[i] = &temp;
+    }
+    nicTransmit(test);
     hcf();
 }

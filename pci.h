@@ -1,6 +1,7 @@
 #pragma once
 
-uint16_t pciConfigReadWord(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset, uint32_t words);
+uint32_t pciConfigReadRegister(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset, uint32_t words);
+void pciConfigSetRegister(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset, uint32_t data);
 
 uint8_t inb(uint16_t portid);
 uint16_t inportw(uint16_t portid);
@@ -14,6 +15,3 @@ void outportl(uint16_t portid, uint32_t value);
 #define PCI_OFFSET_CLASS 0xA
 #define PCI_SELECT_ONE_WORD 0xFFFF
 #define PCI_SELECT_REGISTER 0xFFFFFFFF
-
-#define INTEL_ETHER_CSR_IO_BASE_REG 20
-#define INTEL_ETHER_PORT_RESET 0
