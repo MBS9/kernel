@@ -74,12 +74,12 @@ void _start(void) {
     cursorX = 0;
     cursorY = 0;
     checkAllBuses();
-    char* test[RING_ELEMENT_NO];
-    char temp[RING_ELEMENT_CONTENT_SIZE];
-    memset(&temp, (int)'A', RING_ELEMENT_CONTENT_SIZE);
+    void* test[RING_ELEMENT_NO];
+    char temp[30];
+    memset(&temp, (int)'A', 30);
     for (int i =0; i<RING_ELEMENT_NO; i++) {
         test[i] = &temp;
     }
-    nicTransmit(test);
+    nicTransmit(test, 30);
     hcf();
 }
