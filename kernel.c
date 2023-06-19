@@ -83,12 +83,6 @@ void _start(void) {
     gdt[0] = create_descriptor(0, 0, 0);
     gdt[1] = create_descriptor(0, 0x000FFFFF, (GDT_CODE_PL0));
     gdt[2] = create_descriptor(0, 0x000FFFFF, (GDT_DATA_PL0));
-    print("Setting GDT", 11);
-    sleep(0x3FFFFFF);
-    setGdt(3*sizeof(uint64_t)-1, (uint64_t)&gdt);
-    print("Reloading Segments", 18);
-    sleep(0x3FFFFFF);
-    reloadSegments();
     print("Welcome!", 8);
     print("Hit enter to start!", 19);
     waitForUser();
@@ -96,6 +90,12 @@ void _start(void) {
     memset(fb, '\0', pitch*framebuffer->height);
     cursorX = 0;
     cursorY = 0;
+    print("Setting GDT", 11);
+    sleep(0x3FFFFFF);
+    setGdt(3*sizeof(uint64_t)-1, (uint64_t)&gdt);
+    print("Reloading Segments", 18);
+    sleep(0x3FFFFFF);
+    reloadSegments();
     checkAllBuses();
     void* test[RING_ELEMENT_NO];
     char temp[30];
