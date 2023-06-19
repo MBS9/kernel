@@ -10,6 +10,7 @@ void outb(uint16_t portid, uint8_t value);
 uint8_t inb(uint16_t portid);
 
 void checkAllBuses(void);
+void waitForUser();
 
 typedef struct {
     uint16_t magic; // Magic bytes for idnetiifcation.

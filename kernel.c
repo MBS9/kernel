@@ -66,9 +66,7 @@ void _start(void) {
     psf_init();
     print("Welcome!", 8);
     print("Hit enter to start!", 19);
-    while (get_input_keycode() != KEY_ENTER){
-        continue;
-    }
+    waitForUser();
     print("Wait...", 7);
     memset(fb, '\0', pitch*framebuffer->height);
     cursorX = 0;
@@ -82,4 +80,10 @@ void _start(void) {
     }
     nicTransmit(test, 30);
     hcf();
+}
+
+void waitForUser() {
+    while (get_input_keycode() != KEY_ENTER){
+        continue;
+    }
 }

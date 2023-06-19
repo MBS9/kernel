@@ -2,21 +2,36 @@
 #include <pci.h>
 #include <kernel.h>
 
-uint32_t CSR_IO_MAPPED_BASE_ADDR;
+uint32_t CSR_IO_BAR;
+uint32_t* CSR_MEM_BAR;
 
 void writeOut(uint32_t reg, uint32_t data) {
-    outportl(CSR_IO_MAPPED_BASE_ADDR, reg);
-    outportl(CSR_IO_MAPPED_BASE_ADDR+0x04, data);
+    #ifdef BAR_IO
+        outportl(CSR_IO_BAR, reg);
+        outportl(CSR_IO_BAR+0x04, data);
+    #endif
+    #ifndef BAR_IO
+        *(CSR_MEM_BAR+reg)=data;
+    #endif
 }
 
 uint32_t readIn(int32_t reg) {
-    outportl(CSR_IO_MAPPED_BASE_ADDR, reg);
-    return inportl(CSR_IO_MAPPED_BASE_ADDR+0x04);
+    #ifdef BAR_IO
+        outportl(CSR_IO_BAR, reg);
+        return inportl(CSR_IO_BAR+0x04);
+    #endif
+    #ifndef BAR_IO
+        return *(CSR_MEM_BAR+reg);
+    #endif
 }
 
 void nicAttach(uint16_t bus, uint16_t slot, uint16_t func) {
-    CSR_IO_MAPPED_BASE_ADDR = pciConfigReadRegister(bus, slot, func, INTEL_ETHER_CSR_IO_BASE_REG, PCI_SELECT_REGISTER);
+    CSR_IO_BAR = (uint32_t *)pciConfigReadRegister(bus, slot, func, INTEL_ETHER_CSR_IO_BASE_REG, PCI_SELECT_REGISTER);
+    CSR_MEM_BAR = (uint32_t *)pciConfigReadRegister(bus, slot, func, INTEL_ETHER_CSR_MEM_REG, PCI_SELECT_REGISTER);
+    print("Reset controller", 17);
+    waitForUser();
     writeOut(INTEL_ETHER_CSR_PORT, INTEL_ETHER_PORT_RESET);
+    print("Reset controller", 17);
     sleep(0xFF);
 }
 
