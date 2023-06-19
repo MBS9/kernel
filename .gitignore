@@ -3,3 +3,4 @@
 *.elf
 *.iso
 iso_root/
+*.pcap

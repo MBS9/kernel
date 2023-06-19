@@ -2,7 +2,8 @@
 #include <stddef.h>
 #include <limine.h>
 #include "kernel.h"
- 
+#include "net/net.h"
+
 // The Limine requests can be placed anywhere, but it is important that
 // the compiler does not optimise them away, so, usually, they should
 // be made volatile or equivalent.
@@ -89,11 +90,25 @@ void _start(void) {
     sleep(0x3FFFFFF);
     reloadSegments();
     print("Welcome!", 8);
-    sleep(0x3FFFFFF);
     print("Hit enter to start!", 19);
+    waitForUser();
+    print("Wait...", 7);
+    memset(fb, '\0', pitch*framebuffer->height);
+    cursorX = 0;
+    cursorY = 0;
+    checkAllBuses();
+    void* test[RING_ELEMENT_NO];
+    char temp[30];
+    memset(&temp, (int)'A', 30);
+    for (int i =0; i<RING_ELEMENT_NO; i++) {
+        test[i] = &temp;
+    }
+    nicTransmit(test, 30);
+    hcf();
+}
+
+void waitForUser() {
     while (get_input_keycode() != KEY_ENTER){
         continue;
     }
-    print("Wait...", 7);
-    hcf();
 }

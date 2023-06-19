@@ -4,6 +4,13 @@
 #define PSF1_FONT_MAGIC 0x0434
 
 char get_input_keycode();
+void sleep(uint32_t timer_count);
+
+void outb(uint16_t portid, uint8_t value);
+uint8_t inb(uint16_t portid);
+
+void checkAllBuses(void);
+void waitForUser();
 
 typedef struct {
     uint16_t magic; // Magic bytes for idnetiifcation.
