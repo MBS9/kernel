@@ -81,61 +81,13 @@ void _start(void) {
         for (int i = 0; i <8; i++) {
             putCharAuto('.', 0xFFFFFF, 0xFFFFFF);
         }
-    }    
+    }
+    idt_init();
     cursorX = 0;
     cursorY = 4;
     print("Enjoy!", 6);
     cursorX = 0;
     cursorY = 0;
-    int ox, oy;
-    int keep = 1;
-    int new = 0;
-    while (1)
-    {
-        ox = cursorX;
-        oy = cursorY;
-        if (get_input_keycode() == KEY_DOWN && cursorY < 3){
-            cursorY = cursorY+1;
-            new = 1;
-        } else if (get_input_keycode() == KEY_UP && cursorY > 0) {
-            cursorY = cursorY -1;
-            new = 1;
-        } else if (get_input_keycode() == KEY_LEFT && cursorX >0) {
-            cursorX -=1;
-            new = 1;
-        } else if (get_input_keycode() == KEY_RIGHT && cursorX < 7) {
-            cursorX += 1;
-            new = 1;
-        } else if (get_input_keycode() == KEY_SPACE) {
-            keep = 1;
-        }
-        if (!keep && new) {
-            putchar('.', ox, oy, 0xFFFFFF, 0xFFFFFF);
-        }
-        if (keep && new) {
-            putchar('x', ox, oy, 0x0000FF, 0xFFFF00);
-        }
-        if (new) {
-            putchar('X', cursorX, cursorY, 0x0000FF, 0xFFFF00);
-            new = 0;
-            keep = 0;
-        }
-    }
     
-    /*
-    while (1) {
-        if (get_input_keycode() == KEY_A) {
-            putCharAuto('a');
-        } else if (get_input_keycode() == KEY_BACKSPACE) {
-            if (cursorX != 0) {
-                cursorX--;
-            } else if (cursorX == 0 && cursorY != 0) {
-                cursorY --;
-                cursorX = framebuffer->width/font->width;
-            }
-            putchar((unsigned short)'a', cursorX, cursorY, 0x000000, 0x000000);
-        }
-    }
-    */
     hcf();
 }
