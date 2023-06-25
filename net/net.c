@@ -34,8 +34,8 @@ void nicAttach(uint16_t bus, uint16_t slot, uint16_t func) {
     if (CSR_MEM_BAR == 0) {
         BAR_0 = 0;
     }
-    writeOut(E1000_TCTL, 0b0110000000000111111000011111010);
-    ring 
+    pciConfigSetRegister(bus, slot, func, 0x4, 0b11);
+    ring
         = calloc(RING_ELEMENT_NO,
         sizeof(struct ringElement));
     writeOut(E1000_TDBAH, (uint32_t)((uint64_t)ring>>32));
