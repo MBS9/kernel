@@ -15,3 +15,6 @@ void outportl(uint16_t portid, uint32_t value);
 #define PCI_OFFSET_CLASS 0xA
 #define PCI_SELECT_ONE_WORD 0xFFFF
 #define PCI_SELECT_REGISTER 0xFFFFFFFF
+
+#define PCI_BAR_0 0x10
+#define PCI_BAR_1 0x14

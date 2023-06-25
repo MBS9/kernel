@@ -3,19 +3,19 @@
 #include <stddef.h>
 
 void nicAttach(uint16_t bus, uint16_t slot, uint16_t func);
-void nicTransmit(void* data[], size_t packetLen);
+void nicTransmit(void* data, size_t packetLen);
 
 #define RING_ELEMENT_NO 8
 
-struct ringElement {
-    volatile uint16_t status;
-    volatile uint16_t cmd;
-    volatile struct ringElement* link;
-    volatile uint32_t arrayAdrr;
-    volatile uint16_t size;
-    volatile uint8_t threshold;
-    volatile uint8_t tbdNumber;
-    volatile void* content;
+struct ringElement
+{
+	uint64_t addr;
+	uint16_t length;
+	uint8_t cso;
+	uint8_t cmd;
+	uint8_t status;
+	uint8_t css;
+	uint16_t special;
 };
 
 struct arp
@@ -31,7 +31,7 @@ struct arp
     uint8_t  dstpr[4]; // Destination protocol address - plen bytes (see above). If IPv4 can just be a "u32" type.
 };
 
-#define INTEL_ETHER_CSR_IO_BASE_REG 20
+#define INTEL_ETHER_CSR_IO_BASE_REG 0x18
 #define INTEL_ETHER_CSR_MEM_REG 0x10
 #define INTEL_ETHER_PORT_RESET 0
 #define INTEL_ETHER_CSR_TRANSMIT 0b0000000100010000<<16

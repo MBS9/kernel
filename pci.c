@@ -37,8 +37,6 @@ void outportl(uint16_t portid, uint32_t value)
 	asm volatile("outl %%eax, %%dx": :"d" (portid), "a" (value));
 }
 
-// Manual: https://pdos.csail.mit.edu/6.828/2010/readings/82559ER_datasheet.pdf
-
 uint32_t pciConfigReadRegister(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset, uint32_t words) {
     // offset is in bytes
     // https://wiki.osdev.org/PCI
@@ -46,7 +44,7 @@ uint32_t pciConfigReadRegister(uint16_t bus, uint16_t slot, uint16_t func, uint1
     uint64_t lbus  = (uint64_t)bus;
     uint64_t lslot = (uint64_t)slot;
     uint64_t lfunc = (uint64_t)func;
-    uint16_t tmp = 0;
+    uint32_t tmp = 0;
  
     address = (uint64_t)((lbus << 16) | (lslot << 11) |
               (lfunc << 8) | (offset & 0xFC) | ((uint32_t)0x80000000));
@@ -56,7 +54,7 @@ uint32_t pciConfigReadRegister(uint16_t bus, uint16_t slot, uint16_t func, uint1
     // Read in the data
     // (offset & 2) * 8) = 0 will choose the first word of the 32-bit register
     uint32_t reg = inportl(0xCFC);
-    tmp = (uint16_t)((reg >> ((offset & 2) * 8)) & words);
+    tmp = (uint32_t)((reg >> ((offset & 2) * 8)) & words);
     return tmp;
 }
 
