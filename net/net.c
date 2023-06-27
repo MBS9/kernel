@@ -3,14 +3,14 @@
 #include <pci.h>
 #include <kernel.h>
 
-uint32_t CSR_IO_BAR;
-uint32_t* CSR_MEM_BAR;
-int BAR_0;
-struct ringElement* ring;
+volatile uint32_t CSR_IO_BAR;
+volatile uint32_t CSR_MEM_BAR;
+volatile int BAR_0;
+volatile struct ringElement* ring;
 
 void writeOut(uint32_t reg, uint32_t data) {
     if (BAR_0) {
-        *(CSR_MEM_BAR+reg)=data;
+        *((volatile uint32_t*)(CSR_MEM_BAR+reg))=data;
     } else {
         outportl(CSR_IO_BAR, reg);
         outportl(CSR_IO_BAR+0x04, data);
@@ -19,7 +19,7 @@ void writeOut(uint32_t reg, uint32_t data) {
 
 uint32_t readIn(int32_t reg) {
     if (BAR_0) {
-        return *(CSR_MEM_BAR+reg);
+        return *((volatile uint32_t*)(CSR_MEM_BAR+reg));
     }
     else {
         outportl(CSR_IO_BAR, reg);
@@ -29,7 +29,7 @@ uint32_t readIn(int32_t reg) {
 
 void nicAttach(uint16_t bus, uint16_t slot, uint16_t func) {
     CSR_IO_BAR = (pciConfigReadRegister(bus, slot, func, PCI_BAR_1, PCI_SELECT_REGISTER) & ~1);
-    CSR_MEM_BAR = (uint32_t *)(pciConfigReadRegister(bus, slot, func, PCI_BAR_0, PCI_SELECT_REGISTER) & ~3);
+    CSR_MEM_BAR = (pciConfigReadRegister(bus, slot, func, PCI_BAR_0, PCI_SELECT_REGISTER) & ~3);
     BAR_0 = 1;
     if (CSR_MEM_BAR == 0) {
         BAR_0 = 0;
@@ -38,6 +38,7 @@ void nicAttach(uint16_t bus, uint16_t slot, uint16_t func) {
     ring
         = calloc(RING_ELEMENT_NO,
         sizeof(struct ringElement));
+    writeOut(E1000_CTRL, 1<<26);
     writeOut(E1000_TDBAH, (uint32_t)((uint64_t)ring>>32));
     writeOut(E1000_TDBAL, (uint32_t)((uint64_t)ring & 0xFFFFFFFF));
     writeOut(E1000_TDLEN, RING_ELEMENT_NO*sizeof(struct ringElement));
