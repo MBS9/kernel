@@ -7,6 +7,7 @@ void nicTransmit(void* data, size_t packetLen);
 
 #define RING_ELEMENT_NO 8
 
+/*
 struct ringElement
 {
 	volatile uint64_t addr;
@@ -16,6 +17,27 @@ struct ringElement
 	volatile uint8_t status;
 	volatile uint8_t css;
 	volatile uint16_t special;
+};*/
+
+// Taken from QEMU source
+volatile struct ringElement {
+    uint64_t buffer_addr;       /* Address of the descriptor's data buffer */
+    union {
+        uint32_t data;
+        struct {
+            uint16_t length;    /* Data buffer length */
+            uint8_t cso;        /* Checksum offset */
+            uint8_t cmd;        /* Descriptor control */
+        } flags;
+    } lower;
+    union {
+        uint32_t data;
+        struct {
+            uint8_t status;     /* Descriptor status */
+            uint8_t css;        /* Checksum start */
+            uint16_t special;
+        } fields;
+    } upper;
 };
 
 struct arp
@@ -42,3 +64,14 @@ struct arp
 #define INTEL_ETHER_CSR_GENERAL_POINTER 4
 
 #define INTEL_ETHER_CBL_OK 0b0010000000000000
+
+#define INTEL_ETHER_TCTL_EN 0b1<<1
+#define INTEL_ETHER_TCTL_PSP 0b1<<3
+#define INTEL_ETHER_TCTL_CT_OFF 4
+#define INTEL_ETHER_TCTL_COLD_OFF 12
+
+#define INTEL_ETHER_CTRL_FD 1
+#define INTEL_ETHER_CTRL_ASDE 1<<5
+#define INTEL_ETHER_CTRL_SLU 1<<6
+#define INTEL_ETHER_CTRL_LRST 1<<3
+

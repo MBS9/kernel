@@ -86,7 +86,7 @@ uint16_t pciCheckDevice(uint16_t bus, uint16_t slot, uint16_t function) {
 }
 
 
-void checkAllBuses(void) {
+void checkAllBuses() {
     uint32_t bus, device, function, class;
 
     for (bus = 0; bus < 256; bus++) {

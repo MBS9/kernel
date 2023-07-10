@@ -106,7 +106,14 @@ extern int cursorY;
 extern int cursorX;
 
 void print(char* text, int len) {
-    for (int i = 0; i<len; i++){
+    register int tLen = 0;
+    if (len == 0) {
+        while (1)
+            if (text[tLen++] == '\0') break;
+    } else {
+        tLen = len;
+    }
+    for (int i = 0; i<tLen; i++){
         if (text[i] == ' '){
             cursorX += 1;
             continue;

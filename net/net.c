@@ -6,58 +6,77 @@
 volatile uint32_t CSR_IO_BAR;
 volatile uint32_t CSR_MEM_BAR;
 volatile int BAR_0;
-volatile struct ringElement* ring;
+volatile struct ringElement tx_ring[RING_ELEMENT_NO];
 
-void writeOut(uint32_t reg, uint32_t data) {
-    if (BAR_0) {
-        *((volatile uint32_t*)(CSR_MEM_BAR+reg))=data;
-    } else {
+extern uint64_t kernelBaseVMem;
+extern uint64_t kernelBasePMem;
+
+void writeOut(uint32_t reg, uint32_t data)
+{
+    if (BAR_0)
+    {
+        *((volatile uint32_t *)(CSR_MEM_BAR + reg)) = data;
+    }
+    else
+    {
         outportl(CSR_IO_BAR, reg);
-        outportl(CSR_IO_BAR+0x04, data);
+        outportl(CSR_IO_BAR + 0x04, data);
     }
 }
 
-uint32_t readIn(int32_t reg) {
-    if (BAR_0) {
-        return *((volatile uint32_t*)(CSR_MEM_BAR+reg));
+uint32_t readIn(int32_t reg)
+{
+    if (BAR_0)
+    {
+        return *((volatile uint32_t *)(CSR_MEM_BAR + reg));
     }
-    else {
+    else
+    {
         outportl(CSR_IO_BAR, reg);
-        return inportl(CSR_IO_BAR+0x04);
+        return inportl(CSR_IO_BAR + 0x04);
     }
 }
 
-void nicAttach(uint16_t bus, uint16_t slot, uint16_t func) {
+void nicAttach(uint16_t bus, uint16_t slot, uint16_t func)
+{
     CSR_IO_BAR = (pciConfigReadRegister(bus, slot, func, PCI_BAR_1, PCI_SELECT_REGISTER) & ~1);
     CSR_MEM_BAR = (pciConfigReadRegister(bus, slot, func, PCI_BAR_0, PCI_SELECT_REGISTER) & ~3);
     BAR_0 = 1;
-    if (CSR_MEM_BAR == 0) {
+    if (CSR_MEM_BAR == 0)
+    {
         BAR_0 = 0;
     }
     pciConfigSetRegister(bus, slot, func, 0x4, 0b11);
-    ring
-        = calloc(RING_ELEMENT_NO,
-        sizeof(struct ringElement));
-    writeOut(E1000_CTRL, 1<<26);
-    writeOut(E1000_TDBAH, (uint32_t)((uint64_t)ring>>32));
-    writeOut(E1000_TDBAL, (uint32_t)((uint64_t)ring & 0xFFFFFFFF));
-    writeOut(E1000_TDLEN, RING_ELEMENT_NO*sizeof(struct ringElement));
+    uint64_t ringPhysicalAdrr = &tx_ring-kernelBaseVMem+kernelBasePMem;
+    writeOut(E1000_CTRL, 1 << 26);
+    sleep(0xFFFF);
+    while ((readIn(E1000_CTRL) & (1<<26)) != 0) {
+        sleep(0xFFFF);
+    }
+    print("Reset success!", 14);
+    writeOut(E1000_CTRL, INTEL_ETHER_CTRL_ASDE | INTEL_ETHER_CTRL_FD | INTEL_ETHER_CTRL_SLU | INTEL_ETHER_CTRL_LRST);
+    writeOut(E1000_TDBAH, (uint32_t)((uint64_t)ringPhysicalAdrr >> 32));
+    writeOut(E1000_TDBAL, (uint32_t)((uint64_t)ringPhysicalAdrr & 0xFFFFFFFF));
+    writeOut(E1000_TDLEN, RING_ELEMENT_NO * sizeof(struct ringElement));
     writeOut(E1000_TDT, 0);
-    writeOut(E1000_TCTL,  0b0110000000000111111000011111010);
-    writeOut(E1000_TIPG,  0x0060200A);
+    writeOut(E1000_TCTL, INTEL_ETHER_TCTL_EN | INTEL_ETHER_TCTL_PSP | 0x0F << INTEL_ETHER_TCTL_CT_OFF | 0x40 << INTEL_ETHER_TCTL_COLD_OFF);
+    writeOut(E1000_TIPG, 0x0060200A);
     print("Started Contoller", 17);
 }
 
-void nicTransmit(void* data, size_t packetLen) {
-    for (int i = 0; i<RING_ELEMENT_NO; i++) {
-        ring[i].cmd=0b00011001;
-        ring[i].addr=(uint64_t)data;
-        ring[i].length = packetLen;
-        ring[i].cso=0;
-        ring[i].css=0;
+void nicTransmit(void *data, size_t packetLen)
+{
+    for (int i = 0; i < RING_ELEMENT_NO; i++)
+    {
+        tx_ring[i].lower.flags.cmd = 0b00011001;
+        tx_ring[i].buffer_addr = (uint64_t)data;
+        tx_ring[i].lower.flags.length = packetLen;
+        tx_ring[i].lower.flags.cso = 0;
+        tx_ring[i].upper.fields.css = 0;
     }
     writeOut(E1000_TDT, 1);
-    while ((ring[0].status & 1)== 0) {
+    while ((tx_ring[0].upper.fields.status & 1) == 0)
+    {
         continue;
     }
     print("Success!", 8);

@@ -13,12 +13,26 @@ static volatile struct limine_framebuffer_request framebuffer_request = {
     .revision = 0
 };
 
+static volatile struct limine_kernel_address_request adrr_request = {
+    .id = LIMINE_KERNEL_ADDRESS_REQUEST,
+    .revision = 0
+};
+
 static volatile struct limine_memmap_request memmap_request = {
     .id = LIMINE_MEMMAP_REQUEST,
     .revision = 0
 };
 
- 
+static volatile struct limine_boot_time_request time_request = {
+    .id = LIMINE_BOOT_TIME_REQUEST,
+    .revision = 0
+};
+
+struct tm bootTime;
+char bootTimeString[10];
+uint64_t kernelBaseVMem;
+uint64_t kernelBasePMem;
+
 // Halt and catch fire function.
 static void hcf(void) {
     asm ("cli");
@@ -64,13 +78,24 @@ void _start(void) {
     }
     init_mem(largestBase);
     psf_init();
+    __secs_to_tm(time_request.response->boot_time, &bootTime);
     print("Welcome!", 8);
+    /*
+    itoa(bootTime.tm_year+1900, &bootTimeString, 10);
+    bootTimeString[4] = '/';
+    itoa(bootTime.tm_mon+1, &bootTimeString+5, 10);
+    bootTimeString[7] = '/';
+    itoa(bootTime.tm_mday, &bootTimeString+8, 10);
+    print(&bootTimeString, 10);
+    */
     print("Hit enter to start!", 19);
     waitForUser();
     print("Wait...", 7);
     memset(fb, '\0', pitch*framebuffer->height);
     cursorX = 0;
     cursorY = 0;
+    kernelBasePMem = adrr_request.response->physical_base;
+    kernelBaseVMem = adrr_request.response->virtual_base;
     checkAllBuses();
     char temp[30];
     memset(&temp, (int)'A', 50);
