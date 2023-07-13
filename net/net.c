@@ -48,18 +48,17 @@ void nicAttach(uint16_t bus, uint16_t slot, uint16_t func)
         BAR_0 = 0;
     }
     pciConfigSetRegister(bus, slot, func, 0x4, 0b11);
-    ringPhysicalAdrr = (((uint64_t)(&tx_ring))-kernelBaseVMem)+kernelBasePMem;
+    ringPhysicalAdrr = (uint64_t)(((uint64_t)&tx_ring)-kernelBaseVMem)+kernelBasePMem;
     writeOut(E1000_CTRL, 1 << 26);
     sleep(0xFFFF);
-    while ((readIn(E1000_CTRL) & (1<<26)) != 0) {
-        sleep(0xFFFF);
-    }
+    while ((readIn(E1000_CTRL) & (1<<26)) != 0) sleep(0xFFFF);
     print("Reset success!", 14);
     writeOut(E1000_CTRL, INTEL_ETHER_CTRL_ASDE | INTEL_ETHER_CTRL_FD | INTEL_ETHER_CTRL_SLU | INTEL_ETHER_CTRL_LRST);
-    writeOut(E1000_TDBAH, (uint32_t)((uint64_t)ringPhysicalAdrr >> 32));
-    writeOut(E1000_TDBAL, (uint32_t)((uint64_t)ringPhysicalAdrr & 0xFFFFFFFF));
+    writeOut(E1000_TDBAH, (uint32_t)(ringPhysicalAdrr >> 32));
+    writeOut(E1000_TDBAL, (uint32_t)(ringPhysicalAdrr & 0xFFFFFFFF));
     writeOut(E1000_TDLEN, RING_ELEMENT_NO * sizeof(struct ringElement));
     writeOut(E1000_TDT, 0);
+    writeOut(E1000_TDH, 0);
     writeOut(E1000_TCTL, INTEL_ETHER_TCTL_EN | INTEL_ETHER_TCTL_PSP | 0x0F << INTEL_ETHER_TCTL_CT_OFF | 0x40 << INTEL_ETHER_TCTL_COLD_OFF);
     writeOut(E1000_TIPG, 0x0060200A);
     print("Started Contoller", 17);
@@ -77,8 +76,6 @@ void nicTransmit(void *data, size_t packetLen)
     }
     writeOut(E1000_TDT, 1);
     while ((tx_ring[0].upper.fields.status & 1) == 0)
-    {
         continue;
-    }
     print("Success!", 8);
 }
