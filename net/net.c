@@ -7,6 +7,7 @@ volatile uint32_t CSR_IO_BAR;
 volatile uint32_t CSR_MEM_BAR;
 volatile int BAR_0;
 volatile struct ringElement tx_ring[RING_ELEMENT_NO];
+uint64_t ringPhysicalAdrr;
 
 extern uint64_t kernelBaseVMem;
 extern uint64_t kernelBasePMem;
@@ -47,7 +48,7 @@ void nicAttach(uint16_t bus, uint16_t slot, uint16_t func)
         BAR_0 = 0;
     }
     pciConfigSetRegister(bus, slot, func, 0x4, 0b11);
-    uint64_t ringPhysicalAdrr = &tx_ring-kernelBaseVMem+kernelBasePMem;
+    ringPhysicalAdrr = (((uint64_t)(&tx_ring))-kernelBaseVMem)+kernelBasePMem;
     writeOut(E1000_CTRL, 1 << 26);
     sleep(0xFFFF);
     while ((readIn(E1000_CTRL) & (1<<26)) != 0) {

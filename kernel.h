@@ -24,8 +24,6 @@ struct tm
     int tm_min;
 };
 
-int __secs_to_tm(long long t, struct tm *tm);
-
 typedef struct {
     uint16_t magic; // Magic bytes for idnetiifcation.
     uint8_t fontMode; // PSF font mode

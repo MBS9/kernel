@@ -4,3 +4,4 @@
 *.iso
 iso_root/
 *.pcap
+core.*

@@ -78,19 +78,8 @@ void _start(void) {
     }
     init_mem(largestBase);
     psf_init();
-    __secs_to_tm(time_request.response->boot_time, &bootTime);
-    print("Welcome!", 8);
-    /*
-    itoa(bootTime.tm_year+1900, &bootTimeString, 10);
-    bootTimeString[4] = '/';
-    itoa(bootTime.tm_mon+1, &bootTimeString+5, 10);
-    bootTimeString[7] = '/';
-    itoa(bootTime.tm_mday, &bootTimeString+8, 10);
-    print(&bootTimeString, 10);
-    */
-    print("Hit enter to start!", 19);
+    print("Hit enter to continue boot...", 30);
     waitForUser();
-    print("Wait...", 7);
     memset(fb, '\0', pitch*framebuffer->height);
     cursorX = 0;
     cursorY = 0;
