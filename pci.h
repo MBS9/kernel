@@ -1,3 +1,4 @@
+#include <stdint.h>
 #pragma once
 
 uint32_t pciConfigReadRegister(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset, uint32_t words);
