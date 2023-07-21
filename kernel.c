@@ -52,6 +52,10 @@ extern PSF_font* font;
 
 struct limine_framebuffer* framebuffer;
 
+uint64_t getPhysicalMem(void* object){
+    return (((uint64_t)object)-kernelBaseVMem)+kernelBasePMem;
+}
+
 // The following will be our kernel's entry point.
 // If renaming _start() to something else, make sure to change the
 // linker script accordingly.
@@ -86,9 +90,9 @@ void _start(void) {
     kernelBasePMem = adrr_request.response->physical_base;
     kernelBaseVMem = adrr_request.response->virtual_base;
     checkAllBuses();
-    char temp[30];
-    memset(&temp, (int)'A', 50);
-    nicTransmit(&temp, 50);
+    char* temp = calloc(50, sizeof(char));
+    memset(temp, (int)'A', 50);
+    nicTransmit(temp, 50);
     hcf();
 }
 

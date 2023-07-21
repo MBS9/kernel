@@ -9,6 +9,8 @@ void sleep(uint32_t timer_count);
 void outb(uint16_t portid, uint8_t value);
 uint8_t inb(uint16_t portid);
 
+uint64_t getPhysicalMem(void* object);
+
 void checkAllBuses();
 void waitForUser();
 

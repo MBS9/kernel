@@ -19,3 +19,10 @@ void outportl(uint16_t portid, uint32_t value);
 
 #define PCI_BAR_0 0x10
 #define PCI_BAR_1 0x14
+
+#define PCI_CMD_IO 1
+#define PCI_CMD_MEM 1<<1
+#define PCI_CMD_BM 1<<2
+#define PCI_CMD_SC 1<<3
+#define PCI_CMD_MWIE 1<<4
+#define PCI_CMD_FBBE 1<<9
