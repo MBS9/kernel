@@ -11,6 +11,7 @@ uint64_t ringPhysicalAdrr;
 
 extern uint64_t kernelBaseVMem;
 extern uint64_t kernelBasePMem;
+extern uint64_t hhdm_offset;
 
 void writeOut(uint32_t reg, uint32_t data)
 {
@@ -47,8 +48,9 @@ void nicAttach(uint16_t bus, uint16_t slot, uint16_t func)
     {
         BAR_0 = 0;
     }
+    //tx_ring = calloc(RING_ELEMENT_NO, sizeof(struct ringElement));
     pciConfigSetRegister(bus, slot, func, 0x4, PCI_CMD_IO | PCI_CMD_MEM | PCI_CMD_FBBE | PCI_CMD_BM | PCI_CMD_SC | PCI_CMD_MWIE);
-    ringPhysicalAdrr = getPhysicalMem(&tx_ring);
+    ringPhysicalAdrr = getPhysicalMemKernel((void*)&tx_ring);
     writeOut(E1000_CTRL, 1 << 26);
     sleep(0xFFFF);
     while ((readIn(E1000_CTRL) & (1<<26)) != 0) sleep(0xFFFF);
@@ -69,7 +71,7 @@ void nicTransmit(void *data, size_t packetLen)
     for (int i = 0; i < RING_ELEMENT_NO; i++)
     {
         tx_ring[i].lower.flags.cmd = TX_CTRL_EOP | TX_CTRL_RS | TX_CTRL_RPS;
-        tx_ring[i].buffer_addr = getPhysicalMem(data);
+        tx_ring[i].buffer_addr = getPhysicalMemHeap(data);
         tx_ring[i].lower.flags.length = packetLen;
         tx_ring[i].lower.flags.cso = 0;
         tx_ring[i].upper.fields.css = 0;
