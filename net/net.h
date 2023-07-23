@@ -2,14 +2,8 @@
 #include <stddef.h>
 #pragma once
 
-#define ETHER_PREAMBLE_LEN 7
-#define ETHER_SFD 0b10101011
-#define ETHER_PREAMBLE_CONTENT 0xAA
-
 volatile struct etherPacket
 {
-    uint8_t preamble[ETHER_PREAMBLE_LEN];
-    uint8_t sfd;
     uint8_t dest[6];
     uint8_t source[6];
     uint16_t length_type;
