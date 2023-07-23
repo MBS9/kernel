@@ -10,8 +10,34 @@ volatile struct etherPacket
     char data[];
 };
 
+#define HARDWARE_ADRR_LEN 6
+#define IP_ADRR_LEN 4
+#define ETHERNET 0x1
+
+#define PROTOCOL_IP 0x800
+#define PROTOCOL_TEST 0x88b5
+#define PROTOCOL_ARP 0x0806
+
+#define ARP_REQUEST 1
+
+// Thank you https://wiki.osdev.org/Address_Resolution_Protocol
+struct arp
+{
+    uint16_t htype; // Hardware type
+    uint16_t ptype; // Protocol type
+    uint8_t  hlen; // Hardware address length (Ethernet = 6)
+    uint8_t  plen; // Protocol address length (IPv4 = 4)
+    uint16_t opcode; // ARP Operation Code
+    uint8_t  srchw[HARDWARE_ADRR_LEN]; // Source hardware address - hlen bytes (see above)
+    uint8_t  srcpr[IP_ADRR_LEN]; // Source protocol address - plen bytes (see above). If IPv4 can just be a "u32" type.
+    uint8_t  dsthw[HARDWARE_ADRR_LEN]; // Destination hardware address - hlen bytes (see above)
+    uint8_t  dstpr[IP_ADRR_LEN]; // Destination protocol address - plen bytes (see above). If IPv4 can just be a "u32" type.
+};
+
 void nicAttach(uint16_t bus, uint16_t slot, uint16_t func);
 void nicTransmit(void* data, size_t packetLen);
+
+struct arp* createArpPacket(uint8_t* srcpr, uint8_t* dstpr);
 
 struct etherPacket* createEthernetFrame(uint8_t* dest, uint16_t length, uint16_t type, void* buffer);
 

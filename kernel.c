@@ -101,10 +101,12 @@ void _start(void)
     cursorX = 0;
     cursorY = 0;
     checkAllBuses();
-    char *text = "abcdefghdfgdkjfgjdfkl";
-    uint8_t dest[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-    struct etherPacket* frame = createEthernetFrame(&dest, 21, 0x88b5, text);
-    nicTransmit((void*)frame, sizeof(struct etherPacket)+21);
+    uint8_t exampleOurIp[] = {192, 168, 2, 2};
+    uint8_t exampleIp2[] = {192, 168, 2, 1};
+    struct arp* arpPacket = createArpPacket(&exampleOurIp, &exampleIp2);
+    uint8_t dest[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // Broadcast
+    struct etherPacket* frame = createEthernetFrame(&dest, sizeof(*arpPacket), PROTOCOL_ARP, arpPacket);
+    nicTransmit((void*)frame, sizeof(struct etherPacket)+sizeof(*arpPacket));
     hcf();
 }
 
