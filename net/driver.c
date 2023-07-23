@@ -75,9 +75,9 @@ void nicAttach(uint16_t bus, uint16_t slot, uint16_t func)
     mac[4] = temp & 0xff;
     mac[5] = temp >> 8;
     ringPhysicalAdrr = getPhysicalMemKernel((void *)&tx_ring);
-    writeOut(E1000_CTRL, 1 << 26);
+    writeOut(E1000_CTRL, INTEL_ETHER_CTRL_RESET);
     sleep(0xFFFF);
-    while ((readIn(E1000_CTRL) & (1 << 26)) != 0)
+    while ((readIn(E1000_CTRL) & INTEL_ETHER_CTRL_RESET) != 0)
         sleep(0xFFFF);
     print("Reset success!", 14);
     writeOut(E1000_CTRL, INTEL_ETHER_CTRL_ASDE | INTEL_ETHER_CTRL_FD | INTEL_ETHER_CTRL_SLU | INTEL_ETHER_CTRL_LRST);

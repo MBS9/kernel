@@ -72,6 +72,8 @@ volatile struct ringElement
 #define INTEL_ETHER_CTRL_ASDE 1 << 5
 #define INTEL_ETHER_CTRL_SLU 1 << 6
 #define INTEL_ETHER_CTRL_LRST 1 << 3
+#define INTEL_ETHER_CTRL_RESET 1<<26
+
 #define TX_CTRL_IDE 1 << 7
 #define TX_CTRL_VLE 1 << 6
 #define TX_CTRL_RPS 1 << 4
