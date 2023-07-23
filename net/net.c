@@ -6,6 +6,7 @@
 volatile uint32_t CSR_IO_BAR;
 volatile uint32_t CSR_MEM_BAR;
 volatile int BAR_0;
+int tx_offset;
 volatile struct ringElement tx_ring[RING_ELEMENT_NO];
 uint64_t ringPhysicalAdrr;
 
@@ -63,21 +64,21 @@ void nicAttach(uint16_t bus, uint16_t slot, uint16_t func)
     writeOut(E1000_TDH, 0);
     writeOut(E1000_TCTL, INTEL_ETHER_TCTL_EN | INTEL_ETHER_TCTL_PSP | 0x0F << INTEL_ETHER_TCTL_CT_OFF | 0x40 << INTEL_ETHER_TCTL_COLD_OFF);
     writeOut(E1000_TIPG, 0x0060200A);
+    tx_offset = 0;
     print("Started Contoller", 17);
 }
 
 void nicTransmit(void *data, size_t packetLen)
 {
-    for (int i = 0; i < RING_ELEMENT_NO; i++)
-    {
-        tx_ring[i].lower.flags.cmd = TX_CTRL_EOP | TX_CTRL_RS | TX_CTRL_RPS;
-        tx_ring[i].buffer_addr = getPhysicalMemHeap(data);
-        tx_ring[i].lower.flags.length = packetLen;
-        tx_ring[i].lower.flags.cso = 0;
-        tx_ring[i].upper.fields.css = 0;
-    }
-    writeOut(E1000_TDT, 1);
-    while ((tx_ring[0].upper.fields.status & 1) == 0)
+    tx_ring[tx_offset].lower.flags.cmd = TX_CTRL_EOP | TX_CTRL_RS | TX_CTRL_RPS;
+    tx_ring[tx_offset].buffer_addr = getPhysicalMemHeap(data);
+    tx_ring[tx_offset].lower.flags.length = packetLen;
+    tx_ring[tx_offset].lower.flags.cso = 0;
+    tx_ring[tx_offset].upper.fields.css = 0;
+    register int tx_offset_number = tx_offset+1;
+    writeOut(E1000_TDT, tx_offset_number);
+    while ((tx_ring[tx_offset].upper.fields.status & 1) == 0)
         continue;
+    tx_offset = tx_offset_number%RING_ELEMENT_NO;
     print("Success!", 8);
 }
