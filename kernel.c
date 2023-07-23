@@ -103,7 +103,7 @@ void _start(void)
     checkAllBuses();
     char *text = "abcdefghdfgdkjfgjdfkl";
     uint8_t dest[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-    struct etherPacket* frame = createEthernetFrame(&dest, 21, 0x800, &text);
+    struct etherPacket* frame = createEthernetFrame(&dest, 21, 0x88b5, text);
     nicTransmit((void*)frame, sizeof(struct etherPacket)+21);
     hcf();
 }
