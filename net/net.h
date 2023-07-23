@@ -5,19 +5,22 @@
 void nicAttach(uint16_t bus, uint16_t slot, uint16_t func);
 void nicTransmit(void *data, size_t packetLen);
 
-#define RING_ELEMENT_NO 8
+struct etherPacket* createEthernetFrame(uint8_t* dest, uint16_t length, void* buffer);
 
-/*
-struct ringElement
+#define ETHER_PREAMBLE_LEN 7
+#define ETHER_SFD 0b10101011
+
+#define ETHER_PREAMBLE_CONTENT 0xAA
+
+volatile struct etherPacket
 {
-    volatile uint64_t addr;
-    volatile uint16_t length;
-    volatile uint8_t cso;
-    volatile uint8_t cmd;
-    volatile uint8_t status;
-    volatile uint8_t css;
-    volatile uint16_t special;
-};*/
+    uint8_t preamble[ETHER_PREAMBLE_LEN];
+    uint8_t sfd;
+    uint8_t dest[6];
+    uint8_t source[6];
+    uint8_t length_type[2];
+    void* data;
+};
 
 // Taken from QEMU source
 volatile struct ringElement
@@ -45,6 +48,8 @@ volatile struct ringElement
     } upper;
 };
 
+#define RING_ELEMENT_NO 8
+
 #define INTEL_ETHER_CSR_IO_BASE_REG 0x18
 #define INTEL_ETHER_CSR_MEM_REG 0x10
 #define INTEL_ETHER_PORT_RESET 0
@@ -61,6 +66,7 @@ volatile struct ringElement
 #define INTEL_ETHER_TCTL_PSP 0b1 << 3
 #define INTEL_ETHER_TCTL_CT_OFF 4
 #define INTEL_ETHER_TCTL_COLD_OFF 12
+#define INTEL_ETHER_TCTL_RTLC 1<<24
 
 #define INTEL_ETHER_CTRL_FD 1
 #define INTEL_ETHER_CTRL_ASDE 1 << 5
@@ -73,3 +79,7 @@ volatile struct ringElement
 #define TX_CTRL_IC 1 << 2
 #define TX_CTRL_IFCS 1 << 1
 #define TX_CTRL_EOP 1
+
+#define EEPROM_DONE 1<<4
+#define EEPROM_ADRR_SHIFT 8
+#define EEPROM_EXIST 1<<8
