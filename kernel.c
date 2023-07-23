@@ -101,9 +101,10 @@ void _start(void)
     cursorX = 0;
     cursorY = 0;
     checkAllBuses();
-    char *temp = calloc(50, sizeof(char));
-    memset(temp, (int)'A', 50);
-    nicTransmit(temp, 50);
+    char *text = "abcdefghdfgdkjfgjdfkl";
+    uint8_t dest[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    struct etherPacket* frame = createEthernetFrame(&dest, 21, 0x800, &text);
+    nicTransmit((void*)frame, sizeof(struct etherPacket)+21);
     hcf();
 }
 

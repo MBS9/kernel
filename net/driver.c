@@ -9,7 +9,7 @@ volatile int BAR_0;
 int tx_offset;
 volatile struct ringElement tx_ring[RING_ELEMENT_NO];
 uint64_t ringPhysicalAdrr;
-uint8_t mac[8];
+uint8_t mac[6];
 
 extern uint64_t kernelBaseVMem;
 extern uint64_t kernelBasePMem;
@@ -92,9 +92,9 @@ void nicAttach(uint16_t bus, uint16_t slot, uint16_t func)
     print("Started Contoller", 17);
 }
 
-void nicTransmit(void *data, size_t packetLen)
+void nicTransmit(void* data, size_t packetLen)
 {
-    tx_ring[tx_offset].lower.flags.cmd = TX_CTRL_EOP | TX_CTRL_RS | TX_CTRL_RPS;
+    tx_ring[tx_offset].lower.flags.cmd = TX_CTRL_EOP | TX_CTRL_RS | TX_CTRL_RPS | TX_CTRL_IFCS;
     tx_ring[tx_offset].buffer_addr = getPhysicalMemHeap(data);
     tx_ring[tx_offset].lower.flags.length = packetLen;
     tx_ring[tx_offset].lower.flags.cso = 0;

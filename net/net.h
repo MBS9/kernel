@@ -2,14 +2,8 @@
 #include <stddef.h>
 #pragma once
 
-void nicAttach(uint16_t bus, uint16_t slot, uint16_t func);
-void nicTransmit(void *data, size_t packetLen);
-
-struct etherPacket* createEthernetFrame(uint8_t* dest, uint16_t length, void* buffer);
-
 #define ETHER_PREAMBLE_LEN 7
 #define ETHER_SFD 0b10101011
-
 #define ETHER_PREAMBLE_CONTENT 0xAA
 
 volatile struct etherPacket
@@ -18,9 +12,14 @@ volatile struct etherPacket
     uint8_t sfd;
     uint8_t dest[6];
     uint8_t source[6];
-    uint8_t length_type[2];
-    void* data;
+    uint16_t length_type;
+    char data[];
 };
+
+void nicAttach(uint16_t bus, uint16_t slot, uint16_t func);
+void nicTransmit(void* data, size_t packetLen);
+
+struct etherPacket* createEthernetFrame(uint8_t* dest, uint16_t length, uint16_t type, void* buffer);
 
 // Taken from QEMU source
 volatile struct ringElement
