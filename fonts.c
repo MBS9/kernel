@@ -13,6 +13,9 @@ extern int pitch;
 extern char _binary_font_start;
 PSF_font* font;
 #define PIXEL uint32_t   /* pixel pointer */
+
+// The next two functions were copied as-is from OSDev
+// I do not understand them
 void psf_init()
 {
     uint16_t glyph = 0;
@@ -103,7 +106,14 @@ extern int cursorY;
 extern int cursorX;
 
 void print(char* text, int len) {
-    for (int i = 0; i<len; i++){
+    register int tLen = 0;
+    if (len == 0) {
+        while (1)
+            if (text[tLen++] == '\0') break;
+    } else {
+        tLen = len;
+    }
+    for (int i = 0; i<tLen; i++){
         if (text[i] == ' '){
             cursorX += 1;
             continue;
@@ -115,7 +125,7 @@ void print(char* text, int len) {
 }
 
 void putCharAuto(unsigned short c, uint32_t fg, uint32_t bg) {
-    int maxCharX = 12;
+    int maxCharX = 27;
     int maxCharY = height/font->width-5;
     //putchar(c, cursorX, cursorY, 0x00FF00, 0xFF00FF);
     putchar(c, cursorX, cursorY, fg, bg);

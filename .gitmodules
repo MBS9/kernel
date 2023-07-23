@@ -1,3 +1,6 @@
 [submodule "limine"]
 	path = limine
 	url = https://github.com/limine-bootloader/limine.git
+[submodule "6.828-qemu"]
+	path = 6.828-qemu
+	url = https://github.com/mit-pdos/6.828-qemu.git
