@@ -3,6 +3,7 @@
 #include <limine.h>
 #include "kernel.h"
 #include "net/net.h"
+#include "int/int.h"
 
 // The Limine requests can be placed anywhere, but it is important that
 // the compiler does not optimise them away, so, usually, they should
@@ -95,6 +96,7 @@ void _start(void)
     }
     init_mem((void *)(largestBase + hhdm_offset));
     psf_init();
+    idt_init();
     print("Hit enter to continue boot...", 29);
     waitForUser();
     memset(fb, '\0', pitch * framebuffer->height);
