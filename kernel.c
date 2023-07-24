@@ -107,6 +107,8 @@ void _start(void)
     uint8_t dest[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // Broadcast
     struct etherPacket* frame = createEthernetFrame(&dest, sizeof(*arpPacket), PROTOCOL_ARP, arpPacket);
     nicTransmit((void*)frame, sizeof(struct etherPacket)+sizeof(*arpPacket));
+    free(arpPacket);
+    free(frame);
     hcf();
 }
 

@@ -41,8 +41,20 @@ struct arp* createArpPacket(uint8_t* srcpr, uint8_t* dstpr);
 
 struct etherPacket* createEthernetFrame(uint8_t* dest, uint16_t length, uint16_t type, void* buffer);
 
+#define RECIEVE_BUFFER_SIZE 1048
+
+// Taken from QEMU Source
+volatile struct rx_desc {
+    uint64_t buffer_addr; /* Address of the descriptor's data buffer */
+    uint16_t length;     /* Length of data DMAed into data buffer */
+    uint16_t csum;       /* Packet checksum */
+    uint8_t status;      /* Descriptor status */
+    uint8_t errors;      /* Descriptor Errors */
+    uint16_t special;
+};
+
 // Taken from QEMU source
-volatile struct ringElement
+volatile struct tx_desc
 {
     uint64_t buffer_addr; /* Address of the descriptor's data buffer */
     union
@@ -104,3 +116,13 @@ volatile struct ringElement
 #define EEPROM_DONE 1<<4
 #define EEPROM_ADRR_SHIFT 8
 #define EEPROM_EXIST 1<<8
+
+#define RCTL_EN 1<<1
+#define RCTL_LPE 1<<5
+#define RCTL_BAM 1<<15
+#define RCTL_SECRC 1<<26
+
+#define RCTL_BSIZE_2048 0b00<<16
+#define RCTL_BSIZE_1048 0b01<<16
+#define RCTL_BSIZE_512 0b10<<16
+#define RCTL_BSIZE_256 0b11<<16

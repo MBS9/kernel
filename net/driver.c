@@ -7,8 +7,8 @@ volatile uint32_t CSR_IO_BAR;
 volatile uint32_t CSR_MEM_BAR;
 volatile int BAR_0;
 int tx_offset;
-volatile struct ringElement tx_ring[RING_ELEMENT_NO];
-uint64_t ringPhysicalAdrr;
+volatile struct tx_desc tx_ring[RING_ELEMENT_NO];
+volatile struct rx_desc rx_ring[RING_ELEMENT_NO];
 uint8_t mac[6];
 
 extern uint64_t kernelBaseVMem;
@@ -53,6 +53,7 @@ uint32_t eepromRead(uint32_t reg)
 
 void nicAttach(uint16_t bus, uint16_t slot, uint16_t func)
 {
+    uint64_t ringPhysicalAdrr;
     CSR_IO_BAR = (pciConfigReadRegister(bus, slot, func, PCI_BAR_1, PCI_SELECT_REGISTER) & ~1);
     CSR_MEM_BAR = (pciConfigReadRegister(bus, slot, func, PCI_BAR_0, PCI_SELECT_REGISTER) & ~3);
     BAR_0 = 1;
@@ -60,7 +61,7 @@ void nicAttach(uint16_t bus, uint16_t slot, uint16_t func)
     {
         BAR_0 = 0;
     }
-    // tx_ring = calloc(RING_ELEMENT_NO, sizeof(struct ringElement));
+    // tx_ring = calloc(RING_ELEMENT_NO, sizeof(struct tx_desc));
     pciConfigSetRegister(bus, slot, func, 0x4, PCI_CMD_IO | PCI_CMD_MEM | PCI_CMD_FBBE | PCI_CMD_BM | PCI_CMD_SC | PCI_CMD_MWIE);
     if (!(readIn(E1000_EECD) & EEPROM_EXIST))
         return; // EEPROM does not exist...
@@ -80,15 +81,31 @@ void nicAttach(uint16_t bus, uint16_t slot, uint16_t func)
     while ((readIn(E1000_CTRL) & INTEL_ETHER_CTRL_RESET) != 0)
         sleep(0xFFFF);
     print("Reset success!", 14);
+    // Transmit  Setup
     writeOut(E1000_CTRL, INTEL_ETHER_CTRL_ASDE | INTEL_ETHER_CTRL_FD | INTEL_ETHER_CTRL_SLU | INTEL_ETHER_CTRL_LRST);
     writeOut(E1000_TDBAH, (uint32_t)(ringPhysicalAdrr >> 32));
     writeOut(E1000_TDBAL, (uint32_t)(ringPhysicalAdrr & 0xFFFFFFFF));
-    writeOut(E1000_TDLEN, RING_ELEMENT_NO * sizeof(struct ringElement));
+    writeOut(E1000_TDLEN, RING_ELEMENT_NO * sizeof(struct tx_desc));
     writeOut(E1000_TDT, 0);
     writeOut(E1000_TDH, 0);
     writeOut(E1000_TCTL, INTEL_ETHER_TCTL_EN | INTEL_ETHER_TCTL_PSP | INTEL_ETHER_TCTL_RTLC | 0x0F << INTEL_ETHER_TCTL_CT_OFF | 0x40 << INTEL_ETHER_TCTL_COLD_OFF);
     writeOut(E1000_TIPG, 0x0060200A);
     tx_offset = 0;
+
+    // Recieve Setup
+    for (size_t i = 0; i < RING_ELEMENT_NO; i++)
+        rx_ring[i].buffer_addr = (uint64_t)calloc(1, RECIEVE_BUFFER_SIZE);
+    writeOut(E1000_RA, (uint32_t)((uint64_t)mac & 0xFFFFFFFF));
+    writeOut(E1000_RA+0x4, (uint32_t)((uint64_t)mac >> 32) & 0xFFFF);
+    writeOut(E1000_MTA, 0);
+    writeOut(E1000_IMS, 0);
+    ringPhysicalAdrr = getPhysicalMemKernel((void *)&rx_ring);
+    writeOut(E1000_RDBAL, (uint32_t)(ringPhysicalAdrr & 0xFFFFFFFF));
+    writeOut(E1000_RDBAH, (uint32_t)(ringPhysicalAdrr >> 32));
+    writeOut(E1000_RDLEN, RECIEVE_BUFFER_SIZE);
+    writeOut(E1000_RDH, 0);
+    writeOut(E1000_RDT, RING_ELEMENT_NO-1);
+    writeOut(E1000_RCTL, RCTL_EN | RCTL_LPE | RCTL_BAM | RCTL_SECRC | RCTL_BSIZE_1048);
     print("Started Contoller", 17);
 }
 
