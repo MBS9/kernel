@@ -61,7 +61,11 @@ override CFLAGS += \
     -mno-sse2 \
     -mno-red-zone \
     -mcmodel=kernel
- 
+
+override CFLAGS += \
+    -g \
+    -O0 \
+
 # Internal C preprocessor flags that should not be changed by the user.
 override CPPFLAGS := \
     -I. \
@@ -89,10 +93,10 @@ override NASMFLAGS += \
  
 # Use "find" to glob all *.c, *.S, and *.asm files in the tree and obtain the
 # object and header dependency file names.
-override CFILES := $(shell find -L . -type f -name '*.c' | grep -v 'limine/')
-override ASFILES := $(shell find -L . -type f -name '*.S' | grep -v 'limine/')
-override NASMFILES := $(shell find -L . -type f -name '*.asm' | grep -v 'limine/')
-override FONTFILES := $(shell find -L . -type f -name '*.psf' | grep -v 'limine/')
+override CFILES := $(shell find -L . -type f -name '*.c' | grep -v 'limine/' | grep -v '6.828-qemu/')
+override ASFILES := $(shell find -L . -type f -name '*.S' | grep -v 'limine/' | grep -v '6.828-qemu/')
+override NASMFILES := $(shell find -L . -type f -name '*.asm' | grep -v 'limine/' | grep -v '6.828-qemu/')
+override FONTFILES := $(shell find -L . -type f -name '*.psf' | grep -v 'limine/' | grep -v '6.828-qemu/')
 override OBJ := $(CFILES:.c=.o) $(ASFILES:.S=.o) $(NASMFILES:.asm=.o) $(FONTFILES:.psf=.o)
 override HEADER_DEPS := $(CFILES:.c=.d) $(ASFILES:.S=.d)
  
