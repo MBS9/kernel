@@ -63,6 +63,16 @@ uint64_t getPhysicalMemHeap(void *object)
     return (uint64_t)object - hhdm_offset;
 }
 
+uint64_t getVirtualMemHeap(void *object)
+{
+    return (uint64_t)object + hhdm_offset;
+}
+
+uint64_t getVirtualMemKernel(void *object)
+{
+    return (uint64_t)object + kernelBaseVMem - kernelBasePMem;
+}
+
 // The following will be our kernel's entry point.
 // If renaming _start() to something else, make sure to change the
 // linker script accordingly.

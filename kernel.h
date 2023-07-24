@@ -13,6 +13,9 @@ uint64_t getPhysicalMemKernel(void* object);
 
 uint64_t getPhysicalMemHeap(void* object);
 
+uint64_t getVirtualMemHeap(void *object);
+
+uint64_t getVirtualMemKernel(void *object);
 
 void checkAllBuses();
 void waitForUser();

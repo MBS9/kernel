@@ -7,6 +7,8 @@ volatile uint32_t CSR_IO_BAR;
 volatile uint32_t CSR_MEM_BAR;
 volatile int BAR_0;
 int tx_offset;
+static int rx_head;
+static int rx_cur;
 volatile struct tx_desc tx_ring[RING_ELEMENT_NO];
 volatile struct rx_desc rx_ring[RING_ELEMENT_NO];
 uint8_t mac[6];
@@ -45,8 +47,7 @@ uint32_t eepromRead(uint32_t reg)
 {
     writeOut(E1000_EERD, 1 | (reg << EEPROM_ADRR_SHIFT));
     uint32_t temp;
-    while (!((temp = readIn(E1000_EERD)) & EEPROM_DONE))
-        ;
+    while (!((temp = readIn(E1000_EERD)) & EEPROM_DONE));
     uint16_t data = (temp >> 16) & 0xFFFF;
     return data;
 }
@@ -104,7 +105,9 @@ void nicAttach(uint16_t bus, uint16_t slot, uint16_t func)
     writeOut(E1000_RDBAH, (uint32_t)(ringPhysicalAdrr >> 32));
     writeOut(E1000_RDLEN, RECIEVE_BUFFER_SIZE);
     writeOut(E1000_RDH, 0);
+    rx_head = 0;
     writeOut(E1000_RDT, RING_ELEMENT_NO-1);
+    rx_cur = 0;
     writeOut(E1000_RCTL, RCTL_EN | RCTL_LPE | RCTL_BAM | RCTL_SECRC | RCTL_BSIZE_1048);
     print("Started Contoller", 17);
 }
@@ -122,4 +125,25 @@ void nicTransmit(void* data, size_t packetLen)
         continue;
     tx_offset = tx_offset_number % RING_ELEMENT_NO;
     print("Success!", 8);
+}
+
+void* nicReadFrame()
+{
+    /*
+    Returns null pointer if no new packet has arrived.
+    */
+    uint8_t old_cur;
+    void* buffer = 0x00;
+    if ((rx_ring[rx_cur].status & 0x1))
+    {
+        uint8_t *buf = (uint8_t *)getVirtualMemHeap(rx_ring[rx_cur].buffer_addr);
+        uint16_t len = rx_ring[rx_cur].length;
+        buffer = calloc(1, len);
+        memcpy(buffer, buf, len);
+        rx_ring[rx_cur].status = 0;
+        old_cur = rx_cur;
+        rx_cur = (rx_cur + 1) % RING_ELEMENT_NO;
+        writeCommand(E1000_RDT, old_cur);
+    }
+    return buffer;
 }
