@@ -32,20 +32,27 @@ int createArpPacket(uint8_t *srcpr, uint8_t *dstpr, void** bufferPtr)
     return bufferSize;
 }
 
-int createIpPacket(uint32_t source, uint32_t destIp, uint8_t* destMac, char *data, uint16_t len, void** frameAddr)
+int createIpPacket(uint8_t* source, uint8_t* destIp, uint8_t* destMac, char *data, uint16_t len, void** frameAddr)
 {
     const int totalLen = sizeof(struct etherFrame) + sizeof(struct ip) + len;
     void *frame = calloc(1, totalLen);
     *frameAddr = frame;
     const int frameSize = setupEthernetFrame(destMac, sizeof(struct ip) + len, PROTOCOL_IP, (struct etherFrame*)frame);
     struct ip *packet = (struct ip *)((uint8_t*)frame + frameSize);
-    packet->dest = destIp;
-    packet->source = source;
+    memcpy(&packet->dest, destIp, IP_ADRR_LEN);
+    memcpy(&packet->source, source, IP_ADRR_LEN);
     packet->len = __builtin_bswap16(len + sizeof(struct ip));
     packet->version_ihl = IP_VERSION << IP_VERSION_OFFSET | MIN_IP_HEADER_LEN;
     packet->flag_offset = __builtin_bswap16(0);
     packet->type = IP_NET_CONTROL | IP_HIGH_RELIABILITY;
     packet->id = __builtin_bswap16(1); // TODO: fix this
+    packet->ttl = 30; // 30 Secs till destruction
+    packet->protocol = IP_PROTOCOL_UNASSIGNED;
+    uint16_t* header = (uint16_t*)packet;
+    packet->header_checksum = 0xFFFF;
+    for (size_t i = 0; i < MIN_IP_HEADER_LEN*2; i++)
+        packet->header_checksum += ~__builtin_bswap16(header[i]);
+    packet->header_checksum = __builtin_bswap16(~(packet->header_checksum));
     memcpy(&packet->options_data, data, len);
     return totalLen;
 }

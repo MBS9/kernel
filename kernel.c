@@ -32,6 +32,8 @@ uint64_t kernelBaseVMem;
 uint64_t kernelBasePMem;
 uint64_t hhdm_offset;
 
+extern uint8_t broadcast[];
+
 // Halt and catch fire function.
 static void hcf(void)
 {
@@ -114,7 +116,7 @@ void _start(void)
     uint8_t exampleOurIp[] = {192, 168, 2, 2};
     uint8_t exampleIp2[] = {192, 168, 2, 1};
     void* frame;
-    int len = createArpPacket(&exampleOurIp, &exampleIp2, &frame);
+    int len = createIpPacket(&exampleOurIp, &exampleIp2, &broadcast, "test", 4, &frame);
     nicTransmit(frame, len);
     free(frame);
     hcf();

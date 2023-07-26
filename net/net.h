@@ -18,6 +18,9 @@ volatile struct etherFrame
 #define PROTOCOL_TEST 0x88b5
 #define PROTOCOL_ARP 0x0806
 
+#define IP_PROTOCOL_UNASSIGNED 63
+#define IP_PROTOCOL_ICMP 1
+
 #define ARP_REQUEST 1
 
 // Thank you https://wiki.osdev.org/Address_Resolution_Protocol
@@ -39,7 +42,7 @@ void nicTransmit(void *data, size_t packetLen);
 
 int setupEthernetFrame(uint8_t* dest, uint16_t length, uint16_t type, struct etherFrame* packet);
 int createArpPacket(uint8_t *srcpr, uint8_t *dstpr, void** bufferPtr);
-int createIpPacket(uint32_t source, uint32_t destIp, uint8_t* destMac, char *data, uint16_t len, void** frameAddr);
+int createIpPacket(uint8_t* source, uint8_t* destIp, uint8_t* destMac, char *data, uint16_t len, void** frameAddr);
 
 
 #define RECIEVE_BUFFER_SIZE 1048
@@ -51,6 +54,9 @@ volatile struct ip
     uint16_t len;
     uint16_t id;
     uint16_t flag_offset;
+    uint8_t ttl;
+    uint8_t protocol;
+    uint16_t header_checksum;
     uint32_t source;
     uint32_t dest;
     char options_data[];
