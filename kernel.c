@@ -113,11 +113,9 @@ void _start(void)
     checkAllBuses();
     uint8_t exampleOurIp[] = {192, 168, 2, 2};
     uint8_t exampleIp2[] = {192, 168, 2, 1};
-    struct arp* arpPacket = createArpPacket(&exampleOurIp, &exampleIp2);
-    uint8_t dest[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // Broadcast
-    struct etherPacket* frame = createEthernetFrame(&dest, sizeof(*arpPacket), PROTOCOL_ARP, arpPacket);
-    nicTransmit((void*)frame, sizeof(struct etherPacket)+sizeof(*arpPacket));
-    free(arpPacket);
+    void* frame;
+    int len = createArpPacket(&exampleOurIp, &exampleIp2, &frame);
+    nicTransmit(frame, len);
     free(frame);
     hcf();
 }

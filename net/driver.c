@@ -143,7 +143,7 @@ void* nicReadFrame()
         rx_ring[rx_cur].status = 0;
         old_cur = rx_cur;
         rx_cur = (rx_cur + 1) % RING_ELEMENT_NO;
-        writeCommand(E1000_RDT, old_cur);
+        writeOut(E1000_RDT, old_cur);
     }
     return buffer;
 }
