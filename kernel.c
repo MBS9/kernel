@@ -113,12 +113,22 @@ void _start(void)
     cursorX = 0;
     cursorY = 0;
     checkAllBuses();
-    uint8_t exampleOurIp[] = {192, 168, 2, 2};
-    uint8_t exampleIp2[] = {192, 168, 2, 1};
+    uint8_t exampleOurIp[] = {10, 0, 2, 15};
+    uint8_t exampleIp2[] = {10, 0, 2, 2};
     void *frame;
-    int len = createUdpPacet(1, 1, &exampleOurIp, &exampleIp2, &broadcast, "test", 4, &frame);
+    int len = createArpPacket(&exampleOurIp, &exampleIp2, &frame);
     nicTransmit(frame, len, 0x00, 0, 0);
     free(frame);
+    while ((frame = nicReadFrame()) == 0x00)
+        sleep(0xFF);
+    struct etherFrame *eFrame = (struct etherFrame *)frame;
+    if (__builtin_bswap16(eFrame->length_type) == PROTOCOL_ARP)
+    {
+        print("ARP Response", 12);
+        struct arp *frame = (struct arp *)((uint8_t *)frame + sizeof(struct etherFrame));
+    } else {
+        print("No ARP", 6);
+    }
     hcf();
 }
 

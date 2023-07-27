@@ -48,7 +48,7 @@ uint32_t eepromRead(uint32_t reg)
     writeOut(E1000_EERD, 1 | (reg << EEPROM_ADRR_SHIFT));
     uint32_t temp;
     while (!((temp = readIn(E1000_EERD)) & EEPROM_DONE))
-        ;
+        continue;;
     uint16_t data = (temp >> 16) & 0xFFFF;
     return data;
 }
