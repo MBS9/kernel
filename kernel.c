@@ -115,9 +115,9 @@ void _start(void)
     checkAllBuses();
     uint8_t exampleOurIp[] = {192, 168, 2, 2};
     uint8_t exampleIp2[] = {192, 168, 2, 1};
-    void* frame;
-    int len = createIpPacket(&exampleOurIp, &exampleIp2, &broadcast, "test", 4, &frame);
-    nicTransmit(frame, len);
+    void *frame;
+    int len = createUdpPacet(1, 1, &exampleOurIp, &exampleIp2, &broadcast, "test", 4, &frame);
+    nicTransmit(frame, len, 0x00, 0, 0);
     free(frame);
     hcf();
 }

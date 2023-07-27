@@ -47,7 +47,8 @@ uint32_t eepromRead(uint32_t reg)
 {
     writeOut(E1000_EERD, 1 | (reg << EEPROM_ADRR_SHIFT));
     uint32_t temp;
-    while (!((temp = readIn(E1000_EERD)) & EEPROM_DONE));
+    while (!((temp = readIn(E1000_EERD)) & EEPROM_DONE))
+        ;
     uint16_t data = (temp >> 16) & 0xFFFF;
     return data;
 }
@@ -97,7 +98,7 @@ void nicAttach(uint16_t bus, uint16_t slot, uint16_t func)
     for (size_t i = 0; i < RING_ELEMENT_NO; i++)
         rx_ring[i].buffer_addr = (uint64_t)calloc(1, RECIEVE_BUFFER_SIZE);
     writeOut(E1000_RA, (uint32_t)((uint64_t)mac & 0xFFFFFFFF));
-    writeOut(E1000_RA+0x4, (uint32_t)((uint64_t)mac >> 32) & 0xFFFF);
+    writeOut(E1000_RA + 0x4, (uint32_t)((uint64_t)mac >> 32) & 0xFFFF);
     writeOut(E1000_MTA, 0);
     writeOut(E1000_IMS, 0);
     ringPhysicalAdrr = getPhysicalMemKernel((void *)&rx_ring);
@@ -106,19 +107,19 @@ void nicAttach(uint16_t bus, uint16_t slot, uint16_t func)
     writeOut(E1000_RDLEN, RECIEVE_BUFFER_SIZE);
     writeOut(E1000_RDH, 0);
     rx_head = 0;
-    writeOut(E1000_RDT, RING_ELEMENT_NO-1);
+    writeOut(E1000_RDT, RING_ELEMENT_NO - 1);
     rx_cur = 0;
     writeOut(E1000_RCTL, RCTL_EN | RCTL_LPE | RCTL_BAM | RCTL_SECRC | RCTL_BSIZE_1048);
     print("Started Contoller", 17);
 }
 
-void nicTransmit(void* data, size_t packetLen)
+void nicTransmit(void *data, size_t packetLen, uint8_t options, uint8_t CSO, uint8_t CSS)
 {
-    tx_ring[tx_offset].lower.flags.cmd = TX_CTRL_EOP | TX_CTRL_RS | TX_CTRL_RPS | TX_CTRL_IFCS;
+    tx_ring[tx_offset].lower.flags.cmd = TX_CTRL_EOP | TX_CTRL_RS | TX_CTRL_RPS | TX_CTRL_IFCS | options;
     tx_ring[tx_offset].buffer_addr = getPhysicalMemHeap(data);
     tx_ring[tx_offset].lower.flags.length = packetLen;
-    tx_ring[tx_offset].lower.flags.cso = 0;
-    tx_ring[tx_offset].upper.fields.css = 0;
+    tx_ring[tx_offset].lower.flags.cso = CSO;
+    tx_ring[tx_offset].upper.fields.css = CSS;
     register int tx_offset_number = tx_offset + 1;
     writeOut(E1000_TDT, tx_offset_number);
     while ((tx_ring[tx_offset].upper.fields.status & 1) == 0)
@@ -127,13 +128,13 @@ void nicTransmit(void* data, size_t packetLen)
     print("Success!", 8);
 }
 
-void* nicReadFrame()
+void *nicReadFrame()
 {
     /*
     Returns null pointer if no new packet has arrived.
     */
     uint8_t old_cur;
-    void* buffer = 0x00;
+    void *buffer = 0x00;
     if ((rx_ring[rx_cur].status & 0x1))
     {
         uint8_t *buf = (uint8_t *)getVirtualMemHeap(rx_ring[rx_cur].buffer_addr);

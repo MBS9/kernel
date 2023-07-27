@@ -1,14 +1,6 @@
+#pragma once
 #include <inttypes.h>
 #include <stddef.h>
-#pragma once
-
-volatile struct etherFrame
-{
-    uint8_t dest[6];
-    uint8_t source[6];
-    uint16_t length_type;
-    char data[];
-};
 
 #define HARDWARE_ADRR_LEN 6
 #define IP_ADRR_LEN 4
@@ -18,10 +10,25 @@ volatile struct etherFrame
 #define PROTOCOL_TEST 0x88b5
 #define PROTOCOL_ARP 0x0806
 
+#define IP_PROTOCOL_UDP 0x11
 #define IP_PROTOCOL_UNASSIGNED 63
 #define IP_PROTOCOL_ICMP 1
 
 #define ARP_REQUEST 1
+
+#define MIN_UDP_HEADER 8
+#define IP_VERSION 4
+#define IP_VERSION_OFFSET 4
+#define MIN_IP_HEADER_LEN 5
+#define IP_NET_CONTROL 0b111 << 5
+#define IP_HIGH_RELIABILITY 1 << 3
+
+volatile struct etherFrame
+{
+    uint8_t dest[6];
+    uint8_t source[6];
+    uint16_t length_type;
+};
 
 // Thank you https://wiki.osdev.org/Address_Resolution_Protocol
 volatile struct arp
@@ -37,16 +44,6 @@ volatile struct arp
     uint8_t dstpr[IP_ADRR_LEN];       // Destination protocol address - plen bytes (see above). If IPv4 can just be a "u32" type.
 };
 
-void nicAttach(uint16_t bus, uint16_t slot, uint16_t func);
-void nicTransmit(void *data, size_t packetLen);
-
-int setupEthernetFrame(uint8_t* dest, uint16_t length, uint16_t type, struct etherFrame* packet);
-int createArpPacket(uint8_t *srcpr, uint8_t *dstpr, void** bufferPtr);
-int createIpPacket(uint8_t* source, uint8_t* destIp, uint8_t* destMac, char *data, uint16_t len, void** frameAddr);
-
-
-#define RECIEVE_BUFFER_SIZE 1048
-
 volatile struct ip
 {
     uint8_t version_ihl;
@@ -59,14 +56,26 @@ volatile struct ip
     uint16_t header_checksum;
     uint32_t source;
     uint32_t dest;
-    char options_data[];
 };
 
-#define IP_VERSION 4
-#define IP_VERSION_OFFSET 4
-#define MIN_IP_HEADER_LEN 5
-#define IP_NET_CONTROL 0b111 << 5
-#define IP_HIGH_RELIABILITY 1<<3
+typedef volatile struct
+{
+    uint16_t sourcePort;
+    uint16_t destPort;
+    uint16_t length;
+    uint16_t checksum;
+    char data[];
+} udp;
+
+void nicAttach(uint16_t bus, uint16_t slot, uint16_t func);
+void nicTransmit(void *data, size_t packetLen, uint8_t options, uint8_t CSO, uint8_t CSS);
+
+int createUdpPacet(uint16_t sourcePort, uint16_t destPort, uint8_t *sourceIp, uint8_t *destIp, uint8_t *destMac, char *data, uint16_t dataLen, void **frameAddr);
+int setupEthernetFrame(uint8_t *dest, uint16_t type, struct etherFrame *packet);
+int createArpPacket(uint8_t *srcpr, uint8_t *dstpr, void **bufferPtr);
+int setupIpPacket(uint8_t *sourceIp, uint8_t *destIp, uint8_t *destMac, uint16_t len, uint8_t protocol, void *frameAddr);
+
+#define RECIEVE_BUFFER_SIZE 1048
 
 // Taken from QEMU Source
 volatile struct rx_desc
