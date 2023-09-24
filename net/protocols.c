@@ -3,6 +3,7 @@
 #include <lib/lib.h>
 
 extern uint8_t mac[6];
+uint8_t gatewayMac[6];
 uint8_t broadcast[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // Broadcast
 
 uint32_t addChecksum(uint32_t acc, uint16_t data)
@@ -86,7 +87,7 @@ int createUdpPacet(uint16_t sourcePort, uint16_t destPort, uint8_t *sourceIp, ui
     acc = addChecksum(acc, ((uint16_t *)&(ipHeader->source))[1]);
     acc = addChecksum(acc, ((uint16_t *)&(ipHeader->dest))[0]);
     acc = addChecksum(acc, ((uint16_t *)&(ipHeader->dest))[1]);
-    acc = addChecksum(acc, __builtin_bswap16((uint16_t)(ipHeader->protocol)));
+    acc = addChecksum(acc, (uint16_t)(ipHeader->protocol));
     acc = addChecksum(acc, (uint16_t)(ipHeader->len));
     for (size_t i = 0; i < (totalLen - sizeof(udp) - dataLen) / 2; i++)
         acc = addChecksum(acc, udpPacket[i]);

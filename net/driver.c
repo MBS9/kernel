@@ -96,9 +96,9 @@ void nicAttach(uint16_t bus, uint16_t slot, uint16_t func)
 
     // Recieve Setup
     for (size_t i = 0; i < RING_ELEMENT_NO; i++)
-        rx_ring[i].buffer_addr = (uint64_t)calloc(1, RECIEVE_BUFFER_SIZE);
-    writeOut(E1000_RA, (uint32_t)((uint64_t)mac & 0xFFFFFFFF));
-    writeOut(E1000_RA + 0x4, (uint32_t)((uint64_t)mac >> 32) & 0xFFFF);
+        rx_ring[i].buffer_addr = getPhysicalMemHeap((uint64_t)calloc(1, RECIEVE_BUFFER_SIZE));
+    //writeOut(E1000_RA, (uint32_t)((uint64_t)mac & 0xFFFFFFFF));
+    //writeOut(E1000_RA + 0x4, (uint32_t)((uint64_t)mac >> 32) & 0xFFFF);
     writeOut(E1000_MTA, 0);
     writeOut(E1000_IMS, 0);
     ringPhysicalAdrr = getPhysicalMemKernel((void *)&rx_ring);
@@ -128,17 +128,18 @@ void nicTransmit(void *data, size_t packetLen, uint8_t options, uint8_t CSO, uin
     print("Success!", 8);
 }
 
-void *nicReadFrame()
+void *nicReadFrame(void* buffer)
 {
     /*
     Returns null pointer if no new packet has arrived.
     */
     uint8_t old_cur;
-    void *buffer = 0x00;
+    uint16_t len = 0x00;
+    buffer = 0x00;
     if ((rx_ring[rx_cur].status & 0x1))
     {
         uint8_t *buf = (uint8_t *)getVirtualMemHeap(rx_ring[rx_cur].buffer_addr);
-        uint16_t len = rx_ring[rx_cur].length;
+        len = rx_ring[rx_cur].length;
         buffer = calloc(1, len);
         memcpy(buffer, buf, len);
         rx_ring[rx_cur].status = 0;
@@ -146,5 +147,5 @@ void *nicReadFrame()
         rx_cur = (rx_cur + 1) % RING_ELEMENT_NO;
         writeOut(E1000_RDT, old_cur);
     }
-    return buffer;
+    return len;
 }

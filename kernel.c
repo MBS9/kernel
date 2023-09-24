@@ -33,6 +33,7 @@ uint64_t kernelBasePMem;
 uint64_t hhdm_offset;
 
 extern uint8_t broadcast[];
+extern uint8_t gatewayMac[6];
 
 // Halt and catch fire function.
 static void hcf(void)
@@ -119,16 +120,18 @@ void _start(void)
     int len = createArpPacket(&exampleOurIp, &exampleIp2, &frame);
     nicTransmit(frame, len, 0x00, 0, 0);
     free(frame);
-    while ((frame = nicReadFrame()) == 0x00)
+    while ((len = nicReadFrame(frame)) == 0x00)
         sleep(0xFF);
     struct etherFrame *eFrame = (struct etherFrame *)frame;
-    if (__builtin_bswap16(eFrame->length_type) == PROTOCOL_ARP)
+    if (__builtin_bswap16(eFrame->length_type) != PROTOCOL_ARP)
     {
-        print("ARP Response", 12);
-        struct arp *frame = (struct arp *)((uint8_t *)frame + sizeof(struct etherFrame));
-    } else {
         print("No ARP", 6);
+        hcf();
     }
+    print("ARP Response", 12);
+    struct arp *arpPacket = (struct arp *)((uint8_t *)frame + sizeof(struct etherFrame));
+    memcpy(&gatewayMac, &arpPacket->srchw, sizeof(gatewayMac));
+
     hcf();
 }
 

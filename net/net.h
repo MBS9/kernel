@@ -69,7 +69,7 @@ typedef volatile struct
 
 void nicAttach(uint16_t bus, uint16_t slot, uint16_t func);
 void nicTransmit(void *data, size_t packetLen, uint8_t options, uint8_t CSO, uint8_t CSS);
-void *nicReadFrame();
+void *nicReadFrame(void* buffer);
 
 int createUdpPacet(uint16_t sourcePort, uint16_t destPort, uint8_t *sourceIp, uint8_t *destIp, uint8_t *destMac, char *data, uint16_t dataLen, void **frameAddr);
 int setupEthernetFrame(uint8_t *dest, uint16_t type, struct etherFrame *packet);
