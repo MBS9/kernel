@@ -128,20 +128,20 @@ void nicTransmit(void *data, size_t packetLen, uint8_t options, uint8_t CSO, uin
     print("Success!", 8);
 }
 
-void *nicReadFrame(void* buffer)
+void *nicReadFrame(void** buffer)
 {
     /*
     Returns null pointer if no new packet has arrived.
     */
     uint8_t old_cur;
     uint16_t len = 0x00;
-    buffer = 0x00;
+    *buffer = 0x00;
     if ((rx_ring[rx_cur].status & 0x1))
     {
         uint8_t *buf = (uint8_t *)getVirtualMemHeap(rx_ring[rx_cur].buffer_addr);
         len = rx_ring[rx_cur].length;
-        buffer = calloc(1, len);
-        memcpy(buffer, buf, len);
+        *buffer = calloc(1, len);
+        memcpy(*buffer, buf, len);
         rx_ring[rx_cur].status = 0;
         old_cur = rx_cur;
         rx_cur = (rx_cur + 1) % RING_ELEMENT_NO;

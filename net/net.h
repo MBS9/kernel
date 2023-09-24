@@ -14,13 +14,17 @@
 #define IP_PROTOCOL_UNASSIGNED 63
 #define IP_PROTOCOL_ICMP 1
 
+#define ICMP_PING_DATA_LEN 32
+
 #define ARP_REQUEST 1
 
 #define MIN_UDP_HEADER 8
 #define IP_VERSION 4
+#define IP_TTL 128
 #define IP_VERSION_OFFSET 4
 #define MIN_IP_HEADER_LEN 5
 #define IP_NET_CONTROL 0b111 << 5
+#define IP_NET_PRIORITY 0b001 << 5
 #define IP_HIGH_RELIABILITY 1 << 3
 
 volatile struct etherFrame
@@ -60,6 +64,16 @@ volatile struct ip
 
 typedef volatile struct
 {
+    uint8_t type;
+    uint8_t code;
+    uint16_t checksum;
+    uint16_t id;
+    uint16_t sequence_no;
+    char data[];
+} icmp_ping;
+
+typedef volatile struct
+{
     uint16_t sourcePort;
     uint16_t destPort;
     uint16_t length;
@@ -69,12 +83,13 @@ typedef volatile struct
 
 void nicAttach(uint16_t bus, uint16_t slot, uint16_t func);
 void nicTransmit(void *data, size_t packetLen, uint8_t options, uint8_t CSO, uint8_t CSS);
-void *nicReadFrame(void* buffer);
+void *nicReadFrame(void** buffer);
 
 int createUdpPacet(uint16_t sourcePort, uint16_t destPort, uint8_t *sourceIp, uint8_t *destIp, uint8_t *destMac, char *data, uint16_t dataLen, void **frameAddr);
 int setupEthernetFrame(uint8_t *dest, uint16_t type, struct etherFrame *packet);
 int createArpPacket(uint8_t *srcpr, uint8_t *dstpr, void **bufferPtr);
 int setupIpPacket(uint8_t *sourceIp, uint8_t *destIp, uint8_t *destMac, uint16_t len, uint8_t protocol, void *frameAddr);
+int createPing(uint8_t *sourceIp, uint8_t *destIp, uint8_t *destMac, void **frameAddr);
 
 #define RECIEVE_BUFFER_SIZE 1048
 

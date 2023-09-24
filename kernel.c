@@ -34,6 +34,7 @@ uint64_t hhdm_offset;
 
 extern uint8_t broadcast[];
 extern uint8_t gatewayMac[6];
+uint8_t gatewayIp[] = {10, 0, 2, 2};
 
 // Halt and catch fire function.
 static void hcf(void)
@@ -110,28 +111,35 @@ void _start(void)
     psf_init();
     print("Hit enter to continue boot...", 29);
     waitForUser();
-    memset(fb, '\0', pitch * framebuffer->height);
+    memset(fb, '\0',  pitch * framebuffer->height);
     cursorX = 0;
     cursorY = 0;
     checkAllBuses();
     uint8_t exampleOurIp[] = {10, 0, 2, 15};
-    uint8_t exampleIp2[] = {10, 0, 2, 2};
+    uint8_t cloudflare[] = {1, 1, 1, 1};
     void *frame;
-    int len = createArpPacket(&exampleOurIp, &exampleIp2, &frame);
+    int len = createArpPacket(&exampleOurIp, &gatewayIp, &frame);
     nicTransmit(frame, len, 0x00, 0, 0);
     free(frame);
-    while ((len = nicReadFrame(frame)) == 0x00)
+    void* responseFrame;
+    while ((len = nicReadFrame(&responseFrame)) == 0x00)
         sleep(0xFF);
-    struct etherFrame *eFrame = (struct etherFrame *)frame;
+    struct etherFrame *eFrame = (struct etherFrame *)responseFrame;
     if (__builtin_bswap16(eFrame->length_type) != PROTOCOL_ARP)
     {
         print("No ARP", 6);
         hcf();
     }
     print("ARP Response", 12);
-    struct arp *arpPacket = (struct arp *)((uint8_t *)frame + sizeof(struct etherFrame));
+    struct arp *arpPacket = (struct arp *)((uint8_t *)responseFrame + sizeof(struct etherFrame));
     memcpy(&gatewayMac, &arpPacket->srchw, sizeof(gatewayMac));
-
+    free(frame);
+    void* pingFrame;
+    len = createPing(&exampleOurIp, &cloudflare, &gatewayMac, &pingFrame);
+    nicTransmit(pingFrame, len, 0x00, 0, 0);
+    free(pingFrame);
+    while ((len = nicReadFrame(pingFrame)) == 0x00)
+        sleep(0xFF);
     hcf();
 }
 

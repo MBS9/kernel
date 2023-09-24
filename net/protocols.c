@@ -32,7 +32,7 @@ int createArpPacket(uint8_t *srcpr, uint8_t *dstpr, void **bufferPtr)
     const int bufferSize = sizeof(struct arp) + sizeof(struct etherFrame);
     void *buffer = calloc(1, bufferSize);
     *bufferPtr = buffer;
-    const int frameSize = setupEthernetFrame((uint8_t*)&broadcast, PROTOCOL_ARP, (struct etherFrame *)buffer);
+    const int frameSize = setupEthernetFrame((uint8_t *)&broadcast, PROTOCOL_ARP, (struct etherFrame *)buffer);
     struct arp *packet = (struct arp *)((uint8_t *)buffer + frameSize);
     packet->htype = __builtin_bswap16(ETHERNET);
     packet->ptype = __builtin_bswap16(PROTOCOL_IP);
@@ -44,6 +44,23 @@ int createArpPacket(uint8_t *srcpr, uint8_t *dstpr, void **bufferPtr)
     memcpy(&packet->srcpr, srcpr, IP_ADRR_LEN);
     memcpy(&packet->dstpr, dstpr, IP_ADRR_LEN);
     return bufferSize;
+}
+
+int createPing(uint8_t *sourceIp, uint8_t *destIp, uint8_t *destMac, void **frameAddr)
+{
+    const int totalLen = sizeof(icmp_ping) + ICMP_PING_DATA_LEN + sizeof(struct ip) + sizeof(struct etherFrame);
+    void *frame = calloc(1, totalLen);
+    *frameAddr = frame;
+    const int ipLen = setupIpPacket(sourceIp, destIp, destMac, sizeof(icmp_ping) + ICMP_PING_DATA_LEN, IP_PROTOCOL_ICMP, frame);
+    icmp_ping *ping = (uint8_t *)frame + ipLen;
+    ping->type = 8;
+    memset(&ping->data, ICMP_PING_DATA_LEN, 'A');
+    uint16_t *arrayOctetPacket = (uint16_t *)ping;
+    uint32_t acc = 0;
+    for (size_t i = 0; i < (sizeof(icmp_ping) + ICMP_PING_DATA_LEN) / 2; i++)
+        acc = addChecksum(acc, arrayOctetPacket[i]);
+    ping->checksum = finishChecksum(acc);
+    return totalLen;
 }
 
 int setupIpPacket(uint8_t *sourceIp, uint8_t *destIp, uint8_t *destMac, uint16_t len, uint8_t protocol, void *frameAddr)
@@ -59,7 +76,7 @@ int setupIpPacket(uint8_t *sourceIp, uint8_t *destIp, uint8_t *destMac, uint16_t
     packet->flag_offset = __builtin_bswap16(0);
     packet->type = IP_NET_CONTROL | IP_HIGH_RELIABILITY;
     packet->id = __builtin_bswap16(1); // TODO: fix this
-    packet->ttl = 30;                  // 30 Secs till destruction
+    packet->ttl = IP_TTL;
     packet->protocol = protocol;
     uint16_t *header = (uint16_t *)packet;
     uint32_t acc = 0xFFFF;
