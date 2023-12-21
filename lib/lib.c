@@ -153,3 +153,14 @@ char *itoa(int num, char *str, int base)
 
     return str;
 }
+
+int strlen(char *n, char b)
+{
+    int i = 0;
+    while (*n != b)
+    {
+        i++;
+        n++;
+    }
+    return i;
+}

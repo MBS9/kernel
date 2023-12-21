@@ -14,3 +14,4 @@ void free(void *ptr);
 
 void revstr(char *str1, int len);
 char* itoa(int num, char* str, int base);
+int strlen(char *n, char b);

@@ -81,6 +81,38 @@ typedef volatile struct
     char data[];
 } udp;
 
+typedef volatile struct
+{
+    uint16_t id;
+    uint16_t info;
+    uint16_t QdCount;
+    uint16_t AnCount;
+    uint16_t NsCount;
+    uint16_t ArCount;
+} dnsHeader;
+
+#define LABEL_LEN 11
+
+typedef volatile struct
+{
+    // uint8_t length;
+    char label[LABEL_LEN + 1];
+    uint16_t qtype;
+    uint16_t qclass;
+} dnsQuestion;
+
+#define QCLASS_INTERNET 1
+
+#define QTYPE_A 1
+
+#define UDP_DATA_OFFSET sizeof(struct etherFrame) + sizeof(struct ip) + sizeof(udp)
+#define RD_LEN_OFFSET 8
+
+#define DNS_QUERY 0
+#define DNS_RESPONSE 1 << 15
+#define DNS_STD_QUERY 0
+#define DNS_RD 1 << 8
+
 void nicAttach(uint16_t bus, uint16_t slot, uint16_t func);
 void nicTransmit(void *data, size_t packetLen, uint8_t options, uint8_t CSO, uint8_t CSS);
 uint16_t nicReadFrame(void **buffer);
@@ -90,6 +122,7 @@ int setupEthernetFrame(uint8_t *dest, uint16_t type, struct etherFrame *packet);
 int createArpPacket(uint8_t *srcpr, uint8_t *dstpr, void **bufferPtr);
 int setupIpPacket(uint8_t *sourceIp, uint8_t *destIp, uint8_t *destMac, uint16_t len, uint8_t protocol, void *frameAddr);
 int createPing(uint8_t *sourceIp, uint8_t *destIp, uint8_t *destMac, void **frameAddr);
+uint8_t *dnsQuery(char *domain);
 
 #define RECIEVE_BUFFER_SIZE 1048
 

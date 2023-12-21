@@ -117,3 +117,34 @@ int createUdpPacet(uint16_t sourcePort, uint16_t destPort, uint8_t *sourceIp, ui
     packet->checksum = finishChecksum(acc);
     return totalLen;
 }
+
+uint8_t *dnsQuery(char *domain)
+{
+    /*
+    char *p = domain + 1;
+    char *lenPtr = domain;
+    char hlen = 0;
+    while (*p)
+    {
+        if (*p == '.')
+        {
+            lenPtr[0] = hlen;
+            lenPtr = p;
+            hlen = -1;
+        }
+        p++;
+        hlen++;
+    }
+    *lenPtr = hlen;*/
+
+    const int dnsLen = sizeof(dnsHeader) + sizeof(dnsQuestion);
+    dnsHeader *dns = calloc(dnsLen, 1);
+    dnsQuestion *question = (uint8_t *)dns + sizeof(dnsHeader);
+    dns->id = __builtin_bswap16(1);
+    dns->info = __builtin_bswap16(DNS_QUERY | DNS_STD_QUERY | DNS_RD);
+    dns->QdCount = __builtin_bswap16(1);
+    memcpy(&question->label, domain, LABEL_LEN);
+    question->qclass = __builtin_bswap16(QCLASS_INTERNET);
+    question->qtype = __builtin_bswap16(QTYPE_A);
+    return dns;
+}
