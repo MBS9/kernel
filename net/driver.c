@@ -128,7 +128,7 @@ void nicTransmit(void *data, size_t packetLen, uint8_t options, uint8_t CSO, uin
     print("Success!", 8);
 }
 
-void *nicReadFrame(void** buffer)
+uint16_t nicReadFrame(void **buffer)
 {
     /*
     Returns null pointer if no new packet has arrived.

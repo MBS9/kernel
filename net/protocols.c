@@ -8,15 +8,24 @@ uint8_t broadcast[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // Broadcast
 
 uint32_t addChecksum(uint32_t acc, uint16_t data)
 {
-    acc += __builtin_bswap16(data);
-    if (acc >= 0x10000)
-        acc -= 0xFFFF;
+    acc += (uint32_t)data;
     return acc;
 }
 
 uint16_t finishChecksum(uint32_t acc)
 {
-    return __builtin_bswap16((uint16_t) ~(acc & 0xFFFF));
+    while (acc >> 16)
+        acc = (acc & 0xFFFF) + (acc >> 16);
+    return (uint16_t) ~(acc & 0xFFFF);
+}
+
+uint32_t digestBuffer(uint16_t *buffer, int n, uint32_t acc)
+{
+    for (size_t i = 0; i < n; i++)
+    {
+        acc = addChecksum(acc, buffer[i]);
+    }
+    return acc;
 }
 
 int setupEthernetFrame(uint8_t *dest, uint16_t type, struct etherFrame *packet)
@@ -55,10 +64,8 @@ int createPing(uint8_t *sourceIp, uint8_t *destIp, uint8_t *destMac, void **fram
     icmp_ping *ping = (uint8_t *)frame + ipLen;
     ping->type = 8;
     memset(&ping->data, ICMP_PING_DATA_LEN, 'A');
-    uint16_t *arrayOctetPacket = (uint16_t *)ping;
     uint32_t acc = 0;
-    for (size_t i = 0; i < (sizeof(icmp_ping) + ICMP_PING_DATA_LEN) / 2; i++)
-        acc = addChecksum(acc, arrayOctetPacket[i]);
+    acc = digestBuffer((uint16_t *)ping, (sizeof(icmp_ping) + ICMP_PING_DATA_LEN) / 2, acc);
     ping->checksum = finishChecksum(acc);
     return totalLen;
 }
@@ -80,34 +87,33 @@ int setupIpPacket(uint8_t *sourceIp, uint8_t *destIp, uint8_t *destMac, uint16_t
     packet->protocol = protocol;
     uint16_t *header = (uint16_t *)packet;
     uint32_t acc = 0xFFFF;
-    for (size_t i = 0; i < MIN_IP_HEADER_LEN * 2; i++)
-        acc = addChecksum(acc, header[i]);
+    acc = digestBuffer(header, MIN_IP_HEADER_LEN * 2, acc);
     packet->header_checksum = finishChecksum(acc);
     return totalLen;
 }
 
 int createUdpPacet(uint16_t sourcePort, uint16_t destPort, uint8_t *sourceIp, uint8_t *destIp, uint8_t *destMac, char *data, uint16_t dataLen, void **frameAddr)
 {
-    const int totalLen = sizeof(struct etherFrame) + sizeof(struct ip) + sizeof(udp) + dataLen;
-    void *frame = calloc(1, totalLen);
+    const uint16_t udpSize = sizeof(udp) + dataLen;
+    int padding = 0;
+    if (udpSize & 1)
+        padding = 1;
+    const int totalLen = sizeof(struct etherFrame) + sizeof(struct ip) + udpSize;
+    void *frame = calloc(1, totalLen + padding);
     *frameAddr = frame;
-    const int ipLen = setupIpPacket(sourceIp, destIp, destMac, sizeof(udp) + dataLen, IP_PROTOCOL_UDP, frame);
+    const int ipLen = setupIpPacket(sourceIp, destIp, destMac, udpSize, IP_PROTOCOL_UDP, frame);
     udp *packet = (udp *)((uint8_t *)frame + ipLen);
     packet->destPort = __builtin_bswap16(destPort);
     packet->sourcePort = __builtin_bswap16(sourcePort);
-    packet->length = __builtin_bswap16(MIN_UDP_HEADER + dataLen);
+    packet->length = __builtin_bswap16(udpSize);
     memcpy(&packet->data, data, dataLen);
-    uint16_t *udpPacket = (uint16_t *)((uint8_t *)frame + sizeof(struct etherFrame) + sizeof(struct ip));
-    uint32_t acc = 0x0000;
+    uint32_t acc = 0;
     struct ip *ipHeader = (struct ip *)((uint8_t *)frame + sizeof(struct etherFrame));
-    acc = addChecksum(acc, ((uint16_t *)&(ipHeader->source))[0]);
-    acc = addChecksum(acc, ((uint16_t *)&(ipHeader->source))[1]);
-    acc = addChecksum(acc, ((uint16_t *)&(ipHeader->dest))[0]);
-    acc = addChecksum(acc, ((uint16_t *)&(ipHeader->dest))[1]);
-    acc = addChecksum(acc, (uint16_t)(ipHeader->protocol));
-    acc = addChecksum(acc, (uint16_t)(ipHeader->len));
-    for (size_t i = 0; i < (totalLen - sizeof(udp) - dataLen) / 2; i++)
-        acc = addChecksum(acc, udpPacket[i]);
+
+    acc = digestBuffer((uint16_t *)packet, (udpSize + padding) / 2, acc);
+    acc = digestBuffer((uint16_t *)&ipHeader->source, 4, acc); // Source and dest ip
+    acc = addChecksum(acc, __builtin_bswap16((uint16_t)ipHeader->protocol));
+    acc = addChecksum(acc, __builtin_bswap16(udpSize));
     packet->checksum = finishChecksum(acc);
     return totalLen;
 }

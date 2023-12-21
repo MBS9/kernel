@@ -138,7 +138,11 @@ void _start(void)
     len = createPing(&exampleOurIp, &cloudflare, &gatewayMac, &pingFrame);
     nicTransmit(pingFrame, len, 0x00, 0, 0);
     free(pingFrame);
-    while ((len = nicReadFrame(pingFrame)) == 0x00)
+    void *udpFrame;
+    len = createUdpPacet(1, 1, &exampleOurIp, &cloudflare, &gatewayMac, "hello", 5, &udpFrame);
+    nicTransmit(udpFrame, len, 0, 0, 0);
+    free(udpFrame);
+    while ((len = nicReadFrame(udpFrame)) == 0x00)
         sleep(0xFF);
     hcf();
 }
