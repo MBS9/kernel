@@ -118,9 +118,36 @@ int createUdpPacet(uint16_t sourcePort, uint16_t destPort, uint8_t *sourceIp, ui
     return totalLen;
 }
 
-uint8_t *dnsQuery(char *domain)
+int checkIPChecksum(uint16_t *packet)
 {
-    /*
+    uint32_t acc = 0;
+    acc = digestBuffer(packet, MIN_IP_HEADER_LEN * 2, acc);
+    return finishChecksum(acc) == 0;
+}
+
+int checkUdpChecksum(uint8_t *packet, uint16_t len)
+{
+    int padding = 0;
+    if (len & 1)
+        padding = 1;
+    const struct ip *ipPacket = (struct ip *)(packet + sizeof(struct etherFrame));
+    if (checkIPChecksum((uint16_t *)ipPacket) == 0)
+        return 0;
+    udp *udpPacket = (udp *)(packet + sizeof(struct etherFrame) + sizeof(struct ip));
+    uint32_t acc = 0;
+    acc = digestBuffer((uint16_t *)udpPacket, (len + padding) / 2, acc);
+    struct ip *ipHeader = (struct ip *)(packet + sizeof(struct etherFrame));
+    acc = digestBuffer((uint16_t *)&ipHeader->source, 4, acc); // Source and dest ip
+    acc = addChecksum(acc, __builtin_bswap16((uint16_t)ipHeader->protocol));
+    acc = addChecksum(acc, __builtin_bswap16(len));
+    return finishChecksum(acc) == 0;
+}
+
+uint8_t *dnsQuery(char *inputDomain)
+{
+    const int inputLen = strlen(inputDomain, '\0') + 1;
+    char *domain = calloc(inputLen + 1, 1);
+    memcpy(domain + 1, inputDomain, inputLen);
     char *p = domain + 1;
     char *lenPtr = domain;
     char hlen = 0;
@@ -128,14 +155,14 @@ uint8_t *dnsQuery(char *domain)
     {
         if (*p == '.')
         {
-            lenPtr[0] = hlen;
+            *lenPtr = hlen;
             lenPtr = p;
             hlen = -1;
         }
         p++;
         hlen++;
     }
-    *lenPtr = hlen;*/
+    *lenPtr = hlen;
 
     const int dnsLen = sizeof(dnsHeader) + sizeof(dnsQuestion);
     dnsHeader *dns = calloc(dnsLen, 1);
@@ -147,4 +174,23 @@ uint8_t *dnsQuery(char *domain)
     question->qclass = __builtin_bswap16(QCLASS_INTERNET);
     question->qtype = __builtin_bswap16(QTYPE_A);
     return dns;
+}
+
+int parseDnsResponse(uint8_t *ip[4], uint8_t *packet)
+{
+    const udp *udpPacket = (udp *)(packet + sizeof(struct etherFrame) + sizeof(struct ip));
+    if (checkUdpChecksum(packet, __builtin_bswap16(udpPacket->length)) == 0)
+        return 0;
+    dnsHeader *dns = (dnsHeader *)((char *)udpPacket + sizeof(udp));
+    if (dns->AnCount == 0)
+        return 0;
+    dnsAnswer *answer = (dnsAnswer *)((char *)dns + sizeof(dnsHeader) + sizeof(dnsQuestion));
+    if (answer->type != __builtin_bswap16(QTYPE_A))
+        return 0;
+    if (answer->class != __builtin_bswap16(QCLASS_INTERNET))
+        return 0;
+    if (answer->rdlength != __builtin_bswap16(4))
+        return 0;
+    memcpy(ip, &answer->rdata, __builtin_bswap16(answer->rdlength));
+    return 1;
 }

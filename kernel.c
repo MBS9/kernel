@@ -36,7 +36,7 @@ extern uint8_t broadcast[];
 extern uint8_t gatewayMac[6];
 uint8_t gatewayIp[] = {10, 0, 2, 2};
 
-const char *google = "\6google\3com";
+char *google = "google.com";
 
 // Halt and catch fire function.
 static void
@@ -147,10 +147,11 @@ void _start(void)
     len = createUdpPacet(100, 53, &exampleOurIp, &cloudflare, &gatewayMac, dns, dnsLen, &udpFrame);
     nicTransmit(udpFrame, len, 0, 0, 0);
     free(udpFrame);
-    while ((len = nicReadFrame(udpFrame)) == 0x00)
+    void *dnsResponse;
+    while ((len = nicReadFrame(&dnsResponse)) == 0x00)
         sleep(0xFF);
     uint8_t googleIp[4];
-    memcpy(&googleIp, (char *)udpFrame + len - 4, 4);
+    parseDnsResponse(&googleIp, dnsResponse);
     len = createUdpPacet(100, 1, &exampleOurIp, &googleIp, &gatewayMac, "Hey Google!", 11, &udpFrame);
     nicTransmit(udpFrame, len, 0, 0, 0);
     hcf();

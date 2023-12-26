@@ -95,11 +95,20 @@ typedef volatile struct
 
 typedef volatile struct
 {
-    // uint8_t length;
     char label[LABEL_LEN + 1];
     uint16_t qtype;
     uint16_t qclass;
 } dnsQuestion;
+
+typedef volatile struct
+{
+    uint16_t name;
+    uint16_t type;
+    uint16_t class;
+    uint32_t ttl; // should be 32 bit
+    uint16_t rdlength;
+    uint8_t rdata[];
+} dnsAnswer;
 
 #define QCLASS_INTERNET 1
 
@@ -123,6 +132,7 @@ int createArpPacket(uint8_t *srcpr, uint8_t *dstpr, void **bufferPtr);
 int setupIpPacket(uint8_t *sourceIp, uint8_t *destIp, uint8_t *destMac, uint16_t len, uint8_t protocol, void *frameAddr);
 int createPing(uint8_t *sourceIp, uint8_t *destIp, uint8_t *destMac, void **frameAddr);
 uint8_t *dnsQuery(char *domain);
+int parseDnsResponse(uint8_t *ip[4], uint8_t *packet);
 
 #define RECIEVE_BUFFER_SIZE 1048
 

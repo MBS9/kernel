@@ -140,7 +140,7 @@ uint16_t nicReadFrame(void **buffer)
     {
         uint8_t *buf = (uint8_t *)getVirtualMemHeap(rx_ring[rx_cur].buffer_addr);
         len = rx_ring[rx_cur].length;
-        *buffer = calloc(1, len);
+        *buffer = calloc(1, len + 2); // Add 2 bytes in case we need to do padding for checksum
         memcpy(*buffer, buf, len);
         rx_ring[rx_cur].status = 0;
         old_cur = rx_cur;
