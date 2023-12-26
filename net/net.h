@@ -98,17 +98,17 @@ typedef volatile struct
     char label[LABEL_LEN + 1];
     uint16_t qtype;
     uint16_t qclass;
-} dnsQuestion;
+} __attribute__((packed)) dnsQuestion;
 
 typedef volatile struct
 {
     uint16_t name;
     uint16_t type;
     uint16_t class;
-    uint32_t ttl; // should be 32 bit
+    uint32_t ttl;
     uint16_t rdlength;
     uint8_t rdata[];
-} dnsAnswer;
+} __attribute__((packed)) dnsAnswer;
 
 #define QCLASS_INTERNET 1
 
